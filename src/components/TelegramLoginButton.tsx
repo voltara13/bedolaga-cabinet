@@ -445,8 +445,8 @@ export default function TelegramLoginButton({ referralCode }: TelegramLoginButto
 
         {deepLinkToken && deepLinkUrl ? (
           <>
-            {/* QR Code */}
-            <div className="flex flex-col items-center space-y-2">
+            {/* QR Code — desktop only */}
+            <div className="hidden flex-col items-center space-y-2 md:flex">
               <div className="rounded-2xl bg-white p-4">
                 <QRCodeSVG value={deepLinkUrl} size={180} level="M" includeMargin={false} />
               </div>
