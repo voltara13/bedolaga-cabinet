@@ -200,11 +200,11 @@ export default function Info() {
   });
 
   const tabs = [
-    { id: 'faq' as TabType, label: t('info.faq'), icon: QuestionIcon },
+    // { id: 'faq' as TabType, label: t('info.faq'), icon: QuestionIcon },
     { id: 'rules' as TabType, label: t('info.rules'), icon: DocumentIcon },
     { id: 'privacy' as TabType, label: t('info.privacy'), icon: ShieldIcon },
     { id: 'offer' as TabType, label: t('info.offer'), icon: DocumentIcon },
-    { id: 'loyalty' as TabType, label: t('info.loyalty'), icon: StarIcon },
+    // { id: 'loyalty' as TabType, label: t('info.loyalty'), icon: StarIcon },
   ];
 
   const toggleFaq = (id: number) => {
