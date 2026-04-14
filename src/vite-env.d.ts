@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_TELEGRAM_BOT_USERNAME?: string;
   readonly VITE_APP_NAME?: string;
   readonly VITE_APP_LOGO?: string;
+  readonly VITE_LEGAL_INFO?: string;
 }
 
 interface ImportMeta {

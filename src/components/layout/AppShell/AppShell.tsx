@@ -451,7 +451,10 @@ export function AppShell({ children }: AppShellProps) {
       </main>
 
       {/* Legal footer — desktop only */}
-      <footer className="mx-auto hidden max-w-6xl px-6 pb-6 lg:flex">
+      <footer className="mx-auto hidden max-w-6xl flex-col gap-2 px-6 pb-6 lg:flex">
+        {import.meta.env.VITE_LEGAL_INFO && (
+          <div className="text-xs text-dark-600">{import.meta.env.VITE_LEGAL_INFO}</div>
+        )}
         <div className="flex items-center gap-3 text-xs text-dark-600">
           <Link
             to="/support"
