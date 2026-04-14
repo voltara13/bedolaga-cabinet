@@ -929,7 +929,7 @@
     "useExternalLink": "Please use the external link to get support",
     "openSupport": "Open Support",
     "contactSupport": "Please contact {{username}} for support",
-    "contactUs": "Contact Support"
+    "contactUsTg": "Contact Support"
   },
   "wheel": {
     "title": "Fortune Wheel",

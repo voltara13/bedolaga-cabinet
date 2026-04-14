@@ -378,7 +378,7 @@ export default function Support() {
         return {
           title: isAdmin ? t('support.ticketsDisabled') : t('support.title'),
           message: t('support.contactSupport', { username: supportUsername }),
-          buttonText: t('support.contactUs'),
+          buttonText: t('support.contactUsTg'),
           buttonAction: () => {
             log.debug('Button clicked, opening:', supportUsername);
 
@@ -413,7 +413,7 @@ export default function Support() {
       return {
         title: isAdmin ? t('support.ticketsDisabled') : t('support.title'),
         message: t('support.contactSupport', { username: supportUsername }),
-        buttonText: t('support.contactUs'),
+        buttonText: t('support.contactUsTg'),
         buttonAction: () => {
           log.debug('Fallback button clicked, opening:', supportUsername);
 
@@ -470,7 +470,7 @@ export default function Support() {
                 >
                   <path d="M21.547 7h-3.29a.743.743 0 0 0-.655.392s-1.312 2.416-1.79 3.252c-1.314 2.397-1.994 2.652-2.23 2.652-.24 0-.974-.158-.974-1.644 0-1.066.073-2.128.073-3.194 0-1.064-.64-2.458-2.54-2.458-2.034 0-3.545 1.34-3.545 1.34S7.1 7 7.1 7H3.66c-.452 0-.87.358-.87.852 0 .494.358.87.87.87h.756c.408 0 .7.31.7.752v3.688c0 .44-.29.752-.7.752h-.756c-.512 0-.87.376-.87.87 0 .494.358.87.87.87h3.736c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87h-.756c-.41 0-.7-.312-.7-.752V10.78c.256-.366 1.098-1.356 2.386-1.356.718 0 1.022.42 1.022 1.588v2.308c0 .44-.292.752-.7.752h-.758c-.51 0-.87.376-.87.87 0 .494.36.87.87.87h3.74c.51 0 .87-.376.87-.87 0-.494-.36-.87-.87-.87h-.76c-.408 0-.7-.312-.7-.752V9.858c0-.35.096-.716.34-.98C12.31 8.582 13.002 8 14.146 8c1.098 0 1.366.534 1.366 1.532 0 .926-.07 1.888-.07 2.888 0 1.61.75 2.376 2.28 2.376 1.56 0 2.564-1.218 3.118-2.26.31-.584 1.25-2.452 1.25-2.452.278-.534.67-.732 1.04-.732h.418c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87z" />
                 </svg>
-                ВКонтакте
+                {t('support.contactUsVk')}
               </Button>
             )}
           </div>
@@ -559,7 +559,7 @@ export default function Support() {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-dark-100">
-                      {t('support.contactUs')}
+                      {t('support.contactUsTg')}
                     </div>
                     <div className="text-xs text-dark-400">{supportConfig.support_tg_username}</div>
                   </div>
@@ -573,7 +573,7 @@ export default function Support() {
                     openTelegramLink(`https://t.me/${username}`);
                   }}
                 >
-                  {t('support.contactUs')}
+                  {t('support.contactUsTg')}
                 </Button>
               </Card>
             )}
@@ -587,15 +587,17 @@ export default function Support() {
                     </svg>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-dark-100">ВКонтакте</div>
-                    <div className="text-xs text-dark-400">{supportConfig.support_vk_url}</div>
+                    <div className="text-sm font-medium text-dark-100">
+                      {t('support.vkCommunity')}
+                    </div>
+                    <div className="text-xs text-dark-400">{t('support.vkCommunityDesc')}</div>
                   </div>
                 </div>
                 <Button
                   variant="secondary"
                   onClick={() => openLink(supportConfig.support_vk_url!, { tryInstantView: false })}
                 >
-                  {t('support.contactUs')}
+                  {t('support.contactUsVk')}
                 </Button>
               </Card>
             )}

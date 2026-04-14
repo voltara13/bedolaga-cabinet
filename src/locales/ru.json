@@ -957,7 +957,8 @@
     "useExternalLink": "Для получения поддержки воспользуйтесь внешней ссылкой",
     "openSupport": "Открыть поддержку",
     "contactSupport": "Для получения поддержки обратитесь к {{username}}",
-    "contactUs": "Связаться с поддержкой"
+    "contactUsTg": "Связаться с поддержкой в ТГ",
+    "contactUsVk": "Связаться с поддержкой в ВК"
   },
   "wheel": {
     "title": "Колесо удачи",
@@ -2217,7 +2218,7 @@
         "Backup Enabled": "Бэкап",
         "Backup Interval": "Интервал бэкапа",
         "Support Enabled": "Поддержка",
-        "Support Username": "Username поддержки",
+        "Support Tg Username": "Username TG поддержки",
         "Support Vk Url": "URL ВКонтакте поддержки",
         "Support Url": "URL поддержки",
         "Referral Enabled": "Рефералы",
