@@ -81,6 +81,7 @@ const PUBLIC_ENDPOINTS = [
   '/cabinet/info/rules',
   '/cabinet/info/privacy-policy',
   '/cabinet/info/public-offer',
+  '/cabinet/info/personal-data-consent',
   '/cabinet/info/support-config',
 ];
 

@@ -487,6 +487,14 @@ export function AppShell({ children }: AppShellProps) {
           >
             {t('info.offer')}
           </Link>
+          <span>·</span>
+          <Link
+            to="/info?tab=personal-data"
+            onClick={() => haptic.impact('light')}
+            className="transition-colors hover:text-dark-400"
+          >
+            {t('info.personalData')}
+          </Link>
         </div>
       </footer>
 

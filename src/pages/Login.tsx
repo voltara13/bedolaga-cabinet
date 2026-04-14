@@ -59,6 +59,7 @@ export default function Login() {
   const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(() => isLogoPreloaded());
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [agreePersonalData, setAgreePersonalData] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
@@ -239,6 +240,12 @@ export default function Login() {
       }
       if (password.length < 8) {
         setError(t('auth.passwordTooShort', 'Password must be at least 8 characters'));
+        return;
+      }
+      if (!agreePersonalData) {
+        setError(
+          t('auth.mustAgreePersonalData', 'You must agree to the processing of personal data'),
+        );
         return;
       }
     }
@@ -751,6 +758,29 @@ export default function Login() {
                               </div>
                             )}
 
+                            {authMode === 'register' && (
+                              <label className="flex cursor-pointer items-start gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={agreePersonalData}
+                                  onChange={(e) => setAgreePersonalData(e.target.checked)}
+                                  className="mt-0.5 h-4 w-4 flex-shrink-0 cursor-pointer accent-accent-500"
+                                />
+                                <span className="text-xs text-dark-400">
+                                  <Link
+                                    to="/info?tab=personal-data"
+                                    target="_blank"
+                                    className="text-accent-400 underline underline-offset-2 transition-colors hover:text-accent-300"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {t('info.personalData')}
+                                  </Link>
+                                  {' — '}
+                                  {t('auth.agreeCheckbox', 'I agree')}
+                                </span>
+                              </label>
+                            )}
+
                             <button
                               type="submit"
                               disabled={isLoading}
@@ -818,6 +848,10 @@ export default function Login() {
         <span className="text-dark-700">·</span>
         <Link to="/info?tab=offer" className="transition-colors hover:text-dark-300">
           {t('info.offer')}
+        </Link>
+        <span className="text-dark-700">·</span>
+        <Link to="/info?tab=personal-data" className="transition-colors hover:text-dark-300">
+          {t('info.personalData')}
         </Link>
       </div>
     </div>

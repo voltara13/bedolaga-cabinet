@@ -194,6 +194,8 @@
     "invalidCredentials": "Invalid email or password",
     "tooManyAttempts": "Too many attempts. Please try again later",
     "verificationEmailNotice": "After registration, a verification email will be sent to your address",
+    "agreeCheckbox": "I agree",
+    "mustAgreePersonalData": "You must agree to the processing of personal data",
     "checkEmail": "Check your email",
     "verificationSent": "We sent a verification link to:",
     "clickLinkToVerify": "Click the link in the email to verify your account and log in.",
@@ -929,7 +931,8 @@
     "useExternalLink": "Please use the external link to get support",
     "openSupport": "Open Support",
     "contactSupport": "Please contact {{username}} for support",
-    "contactUsTg": "Contact Support"
+    "contactUsTg": "Contact Support via TG",
+    "contactUsVk": "Contact Support via VK"
   },
   "wheel": {
     "title": "Fortune Wheel",
@@ -4243,6 +4246,7 @@
     "rules": "Rules",
     "privacy": "Privacy Policy",
     "offer": "Public Offer",
+    "personalData": "Personal Data Consent",
     "loyalty": "Loyalty",
     "noFaq": "No FAQ available",
     "noContent": "No content available",

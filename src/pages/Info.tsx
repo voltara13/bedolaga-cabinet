@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import DOMPurify from 'dompurify';
-import { infoApi, FaqPage } from '../api/info';
+import { infoApi, FaqPage, PersonalDataConsentResponse } from '../api/info';
 import { promoApi, LoyaltyTierInfo } from '../api/promo';
 
 const InfoIcon = () => (
@@ -68,7 +68,7 @@ const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
   </svg>
 );
 
-type TabType = 'faq' | 'rules' | 'privacy' | 'offer' | 'loyalty';
+type TabType = 'faq' | 'rules' | 'privacy' | 'offer' | 'personal-data' | 'loyalty';
 
 // Sanitize HTML content to prevent XSS
 const sanitizeHtml = (html: string): string => {
@@ -159,7 +159,7 @@ export default function Info() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as TabType | null;
-  const validTabs: TabType[] = ['faq', 'rules', 'privacy', 'offer', 'loyalty'];
+  const validTabs: TabType[] = ['faq', 'rules', 'privacy', 'offer', 'personal-data', 'loyalty'];
   const [activeTab, setActiveTab] = useState<TabType>(
     tabParam && validTabs.includes(tabParam) ? tabParam : 'rules',
   );
@@ -197,6 +197,15 @@ export default function Info() {
     refetchOnMount: 'always',
   });
 
+  const { data: personalData, isLoading: personalDataLoading } =
+    useQuery<PersonalDataConsentResponse>({
+      queryKey: ['personal-data-consent'],
+      queryFn: infoApi.getPersonalDataConsent,
+      enabled: activeTab === 'personal-data',
+      staleTime: 0,
+      refetchOnMount: 'always',
+    });
+
   const { data: loyaltyData, isLoading: loyaltyLoading } = useQuery({
     queryKey: ['loyalty-tiers'],
     queryFn: promoApi.getLoyaltyTiers,
@@ -210,6 +219,7 @@ export default function Info() {
     { id: 'rules' as TabType, label: t('info.rules'), icon: DocumentIcon },
     { id: 'privacy' as TabType, label: t('info.privacy'), icon: ShieldIcon },
     { id: 'offer' as TabType, label: t('info.offer'), icon: DocumentIcon },
+    { id: 'personal-data' as TabType, label: t('info.personalData'), icon: ShieldIcon },
     // { id: 'loyalty' as TabType, label: t('info.loyalty'), icon: StarIcon },
   ];
 
@@ -322,6 +332,31 @@ export default function Info() {
           {offer.updated_at && (
             <p className="mt-6 border-t border-dark-700 pt-4 text-sm text-dark-400">
               {t('info.updatedAt')}: {new Date(offer.updated_at).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    if (activeTab === 'personal-data') {
+      if (personalDataLoading) {
+        return (
+          <div className="flex justify-center py-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" />
+          </div>
+        );
+      }
+
+      if (!personalData?.content) {
+        return <div className="py-8 text-center text-dark-400">{t('info.noContent')}</div>;
+      }
+
+      return (
+        <div className="bento-card prose prose-invert max-w-none">
+          <div dangerouslySetInnerHTML={{ __html: formatContent(personalData.content) }} />
+          {personalData.updated_at && (
+            <p className="mt-6 border-t border-dark-700 pt-4 text-sm text-dark-400">
+              {t('info.updatedAt')}: {new Date(personalData.updated_at).toLocaleDateString()}
             </p>
           )}
         </div>
