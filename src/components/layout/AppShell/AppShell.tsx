@@ -278,7 +278,7 @@ export function AppShell({ children }: AppShellProps) {
   // headerHeight comes from useHeaderHeight() — accounts for TG safe area in fullscreen
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       {/* Animated background renders via portal on document.body at z-index: -1 */}
       <BackgroundRenderer />
 
@@ -446,7 +446,9 @@ export function AppShell({ children }: AppShellProps) {
       <div className="lg:hidden" style={{ height: headerHeight }} />
 
       {/* Main content */}
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-28 lg:px-6 lg:pb-8">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-28 lg:px-6 lg:pb-8">
+        {children}
+      </main>
 
       {/* Legal footer — desktop only */}
       <footer className="mx-auto hidden max-w-6xl px-6 pb-6 lg:flex">

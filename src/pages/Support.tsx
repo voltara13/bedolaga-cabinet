@@ -455,23 +455,24 @@ export default function Support() {
           <p className="mb-6 text-dark-400">{supportMessage.message}</p>
           <div className="space-y-3">
             <Button onClick={supportMessage.buttonAction} fullWidth>
-              {supportMessage.buttonText}
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L6.15 14.226l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.666.36z" />
+                </svg>
+                {supportMessage.buttonText}
+              </span>
             </Button>
             {supportConfig.support_vk_url && (
-              <Button
-                variant="secondary"
-                fullWidth
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: '#0177FF' }}
                 onClick={() => openLink(supportConfig.support_vk_url!, { tryInstantView: false })}
               >
-                <svg
-                  className="mr-2 h-4 w-4 text-[#0077FF]"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M21.547 7h-3.29a.743.743 0 0 0-.655.392s-1.312 2.416-1.79 3.252c-1.314 2.397-1.994 2.652-2.23 2.652-.24 0-.974-.158-.974-1.644 0-1.066.073-2.128.073-3.194 0-1.064-.64-2.458-2.54-2.458-2.034 0-3.545 1.34-3.545 1.34S7.1 7 7.1 7H3.66c-.452 0-.87.358-.87.852 0 .494.358.87.87.87h.756c.408 0 .7.31.7.752v3.688c0 .44-.29.752-.7.752h-.756c-.512 0-.87.376-.87.87 0 .494.358.87.87.87h3.736c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87h-.756c-.41 0-.7-.312-.7-.752V10.78c.256-.366 1.098-1.356 2.386-1.356.718 0 1.022.42 1.022 1.588v2.308c0 .44-.292.752-.7.752h-.758c-.51 0-.87.376-.87.87 0 .494.36.87.87.87h3.74c.51 0 .87-.376.87-.87 0-.494-.36-.87-.87-.87h-.76c-.408 0-.7-.312-.7-.752V9.858c0-.35.096-.716.34-.98C12.31 8.582 13.002 8 14.146 8c1.098 0 1.366.534 1.366 1.532 0 .926-.07 1.888-.07 2.888 0 1.61.75 2.376 2.28 2.376 1.56 0 2.564-1.218 3.118-2.26.31-.584 1.25-2.452 1.25-2.452.278-.534.67-.732 1.04-.732h.418c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87z" />
+                <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.408 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.862-.523-2.049-1.712-1.033-1.01-1.49-1.135-1.744-1.135-.356 0-.458.102-.458.593v1.558c0 .424-.135.678-1.253.678-1.846 0-3.896-1.118-5.335-3.202C5.029 11.226 4.47 9.3 4.47 8.893c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.78.677.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.854c-.068-1.186-.695-1.287-.695-1.71 0-.204.17-.407.44-.407h2.744c.373 0 .508.203.508.643v3.473c0 .372.17.508.271.508.22 0 .407-.136.813-.542 1.254-1.406 2.151-3.574 2.151-3.574.119-.254.322-.491.763-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.779 1.203 1.253.745.847 1.32 1.558 1.473 2.049.17.491-.085.745-.576.745z" />
                 </svg>
                 {t('support.contactUsVk')}
-              </Button>
+              </button>
             )}
           </div>
         </Card>
@@ -542,19 +543,9 @@ export default function Support() {
             {supportConfig.support_tg_username && (
               <Card className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-800">
-                    <svg
-                      className="h-5 w-5 text-dark-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
-                      />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#29A9EA]/10">
+                    <svg className="h-5 w-5 text-[#29A9EA]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L6.15 14.226l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.666.36z" />
                     </svg>
                   </div>
                   <div>
@@ -564,8 +555,9 @@ export default function Support() {
                     <div className="text-xs text-dark-400">{supportConfig.support_tg_username}</div>
                   </div>
                 </div>
-                <Button
-                  variant="secondary"
+                <button
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: '#29A9EA' }}
                   onClick={() => {
                     const username = supportConfig.support_tg_username!.startsWith('@')
                       ? supportConfig.support_tg_username!.slice(1)
@@ -574,15 +566,15 @@ export default function Support() {
                   }}
                 >
                   {t('support.contactUsTg')}
-                </Button>
+                </button>
               </Card>
             )}
 
             {supportConfig.support_vk_url && (
               <Card className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0077FF]/10">
-                    <svg className="h-5 w-5 text-[#0077FF]" viewBox="0 0 24 24" fill="currentColor">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0177FF]/10">
+                    <svg className="h-5 w-5 text-[#0177FF]" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M21.547 7h-3.29a.743.743 0 0 0-.655.392s-1.312 2.416-1.79 3.252c-1.314 2.397-1.994 2.652-2.23 2.652-.24 0-.974-.158-.974-1.644 0-1.066.073-2.128.073-3.194 0-1.064-.64-2.458-2.54-2.458-2.034 0-3.545 1.34-3.545 1.34S7.1 7 7.1 7H3.66c-.452 0-.87.358-.87.852 0 .494.358.87.87.87h.756c.408 0 .7.31.7.752v3.688c0 .44-.29.752-.7.752h-.756c-.512 0-.87.376-.87.87 0 .494.358.87.87.87h3.736c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87h-.756c-.41 0-.7-.312-.7-.752V10.78c.256-.366 1.098-1.356 2.386-1.356.718 0 1.022.42 1.022 1.588v2.308c0 .44-.292.752-.7.752h-.758c-.51 0-.87.376-.87.87 0 .494.36.87.87.87h3.74c.51 0 .87-.376.87-.87 0-.494-.36-.87-.87-.87h-.76c-.408 0-.7-.312-.7-.752V9.858c0-.35.096-.716.34-.98C12.31 8.582 13.002 8 14.146 8c1.098 0 1.366.534 1.366 1.532 0 .926-.07 1.888-.07 2.888 0 1.61.75 2.376 2.28 2.376 1.56 0 2.564-1.218 3.118-2.26.31-.584 1.25-2.452 1.25-2.452.278-.534.67-.732 1.04-.732h.418c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87z" />
                     </svg>
                   </div>
@@ -593,12 +585,13 @@ export default function Support() {
                     <div className="text-xs text-dark-400">{t('support.vkCommunityDesc')}</div>
                   </div>
                 </div>
-                <Button
-                  variant="secondary"
+                <button
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: '#0177FF' }}
                   onClick={() => openLink(supportConfig.support_vk_url!, { tryInstantView: false })}
                 >
                   {t('support.contactUsVk')}
-                </Button>
+                </button>
               </Card>
             )}
           </motion.div>
