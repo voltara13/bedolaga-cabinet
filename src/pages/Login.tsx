@@ -764,7 +764,7 @@ export default function Login() {
                                   type="checkbox"
                                   checked={agreePersonalData}
                                   onChange={(e) => setAgreePersonalData(e.target.checked)}
-                                  className="mt-0.5 h-4 w-4 flex-shrink-0 cursor-pointer accent-accent-500"
+                                  className="h-4 w-4 flex-shrink-0 cursor-pointer accent-accent-500"
                                 />
                                 <span className="text-xs text-dark-400">
                                   <Link
