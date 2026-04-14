@@ -831,28 +831,36 @@ export default function Login() {
       </div>
       {/* Legal links footer */}
       <div
-        className="fixed bottom-0 left-0 right-0 flex justify-center gap-4 px-4 py-3 text-xs text-dark-500"
+        className="fixed bottom-0 left-0 right-0 flex flex-wrap items-center justify-center gap-4 px-4 py-3 text-xs text-dark-500"
         style={{ paddingBottom: `calc(0.75rem + ${safeBottom}px)` }}
       >
-        <Link to="/support" className="transition-colors hover:text-dark-300">
-          {t('nav.support')}
-        </Link>
-        <span className="text-dark-700">·</span>
-        <Link to="/info?tab=rules" className="transition-colors hover:text-dark-300">
-          {t('info.rules')}
-        </Link>
-        <span className="text-dark-700">·</span>
-        <Link to="/info?tab=privacy" className="transition-colors hover:text-dark-300">
-          {t('info.privacy')}
-        </Link>
-        <span className="text-dark-700">·</span>
-        <Link to="/info?tab=offer" className="transition-colors hover:text-dark-300">
-          {t('info.offer')}
-        </Link>
-        <span className="text-dark-700">·</span>
-        <Link to="/info?tab=personal-data" className="transition-colors hover:text-dark-300">
-          {t('info.personalData')}
-        </Link>
+        {import.meta.env.VITE_LEGAL_INFO && (
+          <>
+            <span className="text-dark-600">{import.meta.env.VITE_LEGAL_INFO}</span>
+            <span className="text-dark-700">·</span>
+          </>
+        )}
+        <div className="flex items-center gap-4">
+          <Link to="/support" className="transition-colors hover:text-dark-300">
+            {t('nav.support')}
+          </Link>
+          <span className="text-dark-700">·</span>
+          <Link to="/info?tab=rules" className="transition-colors hover:text-dark-300">
+            {t('info.rules')}
+          </Link>
+          <span className="text-dark-700">·</span>
+          <Link to="/info?tab=privacy" className="transition-colors hover:text-dark-300">
+            {t('info.privacy')}
+          </Link>
+          <span className="text-dark-700">·</span>
+          <Link to="/info?tab=offer" className="transition-colors hover:text-dark-300">
+            {t('info.offer')}
+          </Link>
+          <span className="text-dark-700">·</span>
+          <Link to="/info?tab=personal-data" className="transition-colors hover:text-dark-300">
+            {t('info.personalData')}
+          </Link>
+        </div>
       </div>
     </div>
   );

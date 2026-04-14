@@ -1039,7 +1039,7 @@ export default function Subscription() {
               {/* ─── Autopay Toggle ─── */}
               {!subscription.is_trial && !subscription.is_daily && (
                 <div
-                  className="flex items-center justify-between rounded-[14px] p-3.5"
+                  className="flex items-center justify-between rounded-[14px] p-3.5 opacity-40"
                   style={{
                     background: g.innerBg,
                     border: `1px solid ${g.innerBorder}`,
@@ -1056,17 +1056,16 @@ export default function Subscription() {
                     </div>
                   </div>
                   <button
-                    onClick={() => autopayMutation.mutate(!subscription.autopay_enabled)}
-                    disabled={autopayMutation.isPending}
-                    className="relative h-7 w-[52px] rounded-full transition-colors duration-300"
+                    disabled
+                    className="relative h-7 w-[52px] cursor-not-allowed rounded-full transition-colors duration-300"
                     style={{
-                      background: subscription.autopay_enabled ? zone.mainHex : g.textGhost,
+                      background: g.textGhost,
                     }}
                   >
                     <span
                       className="absolute top-[3px] h-[22px] w-[22px] rounded-full bg-white transition-[left] duration-300"
                       style={{
-                        left: subscription.autopay_enabled ? '26px' : '3px',
+                        left: '3px',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                       }}
                     />
