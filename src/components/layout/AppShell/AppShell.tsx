@@ -448,6 +448,43 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main content */}
       <main className="mx-auto max-w-6xl px-4 py-6 pb-28 lg:px-6 lg:pb-8">{children}</main>
 
+      {/* Legal footer — desktop only */}
+      <footer className="mx-auto hidden max-w-6xl px-6 pb-6 lg:flex">
+        <div className="flex items-center gap-3 text-xs text-dark-600">
+          <Link
+            to="/support"
+            onClick={() => haptic.impact('light')}
+            className="transition-colors hover:text-dark-400"
+          >
+            {t('nav.support')}
+          </Link>
+          <span>·</span>
+          <Link
+            to="/info?tab=rules"
+            onClick={() => haptic.impact('light')}
+            className="transition-colors hover:text-dark-400"
+          >
+            {t('info.rules')}
+          </Link>
+          <span>·</span>
+          <Link
+            to="/info?tab=privacy"
+            onClick={() => haptic.impact('light')}
+            className="transition-colors hover:text-dark-400"
+          >
+            {t('info.privacy')}
+          </Link>
+          <span>·</span>
+          <Link
+            to="/info?tab=offer"
+            onClick={() => haptic.impact('light')}
+            className="transition-colors hover:text-dark-400"
+          >
+            {t('info.offer')}
+          </Link>
+        </div>
+      </footer>
+
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav
         isKeyboardOpen={isKeyboardOpen}

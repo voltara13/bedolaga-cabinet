@@ -76,9 +76,22 @@ const AUTH_ENDPOINTS = [
   '/cabinet/landing/',
 ];
 
+// Endpoints publicly accessible without authentication (no redirect to login on 401)
+const PUBLIC_ENDPOINTS = [
+  '/cabinet/info/rules',
+  '/cabinet/info/privacy-policy',
+  '/cabinet/info/public-offer',
+  '/cabinet/info/support-config',
+];
+
 function isAuthEndpoint(url: string | undefined): boolean {
   if (!url) return false;
   return AUTH_ENDPOINTS.some((endpoint) => url.startsWith(endpoint));
+}
+
+function isPublicEndpoint(url: string | undefined): boolean {
+  if (!url) return false;
+  return PUBLIC_ENDPOINTS.some((endpoint) => url.startsWith(endpoint));
 }
 
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
@@ -228,7 +241,9 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } else {
         tokenStorage.clearTokens();
-        safeRedirectToLogin();
+        if (!isPublicEndpoint(requestUrl)) {
+          safeRedirectToLogin();
+        }
       }
     }
 

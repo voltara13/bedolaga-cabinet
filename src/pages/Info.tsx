@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router';
 import DOMPurify from 'dompurify';
 import { infoApi, FaqPage } from '../api/info';
 import { promoApi, LoyaltyTierInfo } from '../api/promo';
@@ -156,7 +157,12 @@ const formatContent = (content: string): string => {
 
 export default function Info() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<TabType>('faq');
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as TabType | null;
+  const validTabs: TabType[] = ['faq', 'rules', 'privacy', 'offer', 'loyalty'];
+  const [activeTab, setActiveTab] = useState<TabType>(
+    tabParam && validTabs.includes(tabParam) ? tabParam : 'rules',
+  );
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const { data: faqPages, isLoading: faqLoading } = useQuery({

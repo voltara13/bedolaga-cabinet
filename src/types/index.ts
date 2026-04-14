@@ -505,7 +505,8 @@ export interface SupportConfig {
   tickets_enabled: boolean;
   support_type: 'tickets' | 'profile' | 'url' | 'both';
   support_url?: string | null;
-  support_username?: string | null;
+  support_tg_username?: string | null;
+  support_vk_url?: string | null;
 }
 
 // Paginated response

@@ -388,6 +388,35 @@ export function AppHeader({
 
                 <div className="divider my-3" />
 
+                {/* Legal links */}
+                <div className="flex flex-wrap gap-2 px-3 py-2">
+                  <Link
+                    to="/info?tab=rules"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-xs text-dark-500 transition-colors hover:text-dark-300"
+                  >
+                    {t('info.rules')}
+                  </Link>
+                  <span className="text-xs text-dark-700">·</span>
+                  <Link
+                    to="/info?tab=privacy"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-xs text-dark-500 transition-colors hover:text-dark-300"
+                  >
+                    {t('info.privacy')}
+                  </Link>
+                  <span className="text-xs text-dark-700">·</span>
+                  <Link
+                    to="/info?tab=offer"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-xs text-dark-500 transition-colors hover:text-dark-300"
+                  >
+                    {t('info.offer')}
+                  </Link>
+                </div>
+
+                <div className="divider my-3" />
+
                 <Link
                   to="/profile"
                   onClick={() => setMobileMenuOpen(false)}

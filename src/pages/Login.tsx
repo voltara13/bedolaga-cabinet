@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate, useLocation, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../store/auth';
@@ -798,6 +798,27 @@ export default function Login() {
             )}
           </div>
         )}
+      </div>
+      {/* Legal links footer */}
+      <div
+        className="fixed bottom-0 left-0 right-0 flex justify-center gap-4 px-4 py-3 text-xs text-dark-500"
+        style={{ paddingBottom: `calc(0.75rem + ${safeBottom}px)` }}
+      >
+        <Link to="/support" className="transition-colors hover:text-dark-300">
+          {t('nav.support')}
+        </Link>
+        <span className="text-dark-700">·</span>
+        <Link to="/info?tab=rules" className="transition-colors hover:text-dark-300">
+          {t('info.rules')}
+        </Link>
+        <span className="text-dark-700">·</span>
+        <Link to="/info?tab=privacy" className="transition-colors hover:text-dark-300">
+          {t('info.privacy')}
+        </Link>
+        <span className="text-dark-700">·</span>
+        <Link to="/info?tab=offer" className="transition-colors hover:text-dark-300">
+          {t('info.offer')}
+        </Link>
       </div>
     </div>
   );

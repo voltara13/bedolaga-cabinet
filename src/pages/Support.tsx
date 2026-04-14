@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { motion } from 'framer-motion';
 import { ticketsApi } from '../api/tickets';
 import { infoApi } from '../api/info';
@@ -152,6 +153,7 @@ export default function Support() {
 
   const { t } = useTranslation();
   const isAdmin = useAuthStore((state) => state.isAdmin);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const queryClient = useQueryClient();
   const { openTelegramLink, openLink } = usePlatform();
   const [selectedTicket, setSelectedTicket] = useState<TicketDetail | null>(null);
@@ -204,7 +206,7 @@ export default function Support() {
   const { data: tickets, isLoading } = useQuery({
     queryKey: ['tickets'],
     queryFn: () => ticketsApi.getTickets({ per_page: 20 }),
-    enabled: supportConfig?.tickets_enabled === true,
+    enabled: supportConfig?.tickets_enabled === true && isAuthenticated,
   });
 
   const { data: ticketDetail, isLoading: detailLoading } = useQuery({
@@ -331,6 +333,38 @@ export default function Support() {
     );
   }
 
+  // If not authenticated and tickets are enabled — prompt to login
+  if (!isAuthenticated && supportConfig?.tickets_enabled) {
+    return (
+      <div className="mx-auto mt-12 max-w-md">
+        <Card className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-dark-800">
+            <svg
+              className="h-8 w-8 text-dark-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+              />
+            </svg>
+          </div>
+          <h2 className="mb-2 text-xl font-semibold text-dark-100">{t('support.title')}</h2>
+          <p className="mb-6 text-dark-400">
+            {t('support.loginRequired', 'Войдите, чтобы создать обращение в поддержку')}
+          </p>
+          <Link to="/login" className="btn-primary block w-full py-2.5 text-center">
+            {t('auth.login')}
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
   // If tickets are disabled, show redirect message
   if (supportConfig && !supportConfig.tickets_enabled) {
     log.debug('Tickets disabled, config:', supportConfig);
@@ -339,7 +373,7 @@ export default function Support() {
       log.debug('Getting support message for type:', supportConfig.support_type);
 
       if (supportConfig.support_type === 'profile') {
-        const supportUsername = supportConfig.support_username || '@support';
+        const supportUsername = supportConfig.support_tg_username || '@support';
         log.debug('Opening profile:', supportUsername);
         return {
           title: isAdmin ? t('support.ticketsDisabled') : t('support.title'),
@@ -374,7 +408,7 @@ export default function Support() {
       }
 
       // Fallback: contact support (should not normally happen if config is correct)
-      const supportUsername = supportConfig.support_username || '@support';
+      const supportUsername = supportConfig.support_tg_username || '@support';
       log.debug('Fallback: Opening profile:', supportUsername);
       return {
         title: isAdmin ? t('support.ticketsDisabled') : t('support.title'),
@@ -419,9 +453,27 @@ export default function Support() {
           </div>
           <h2 className="mb-2 text-xl font-semibold text-dark-100">{supportMessage.title}</h2>
           <p className="mb-6 text-dark-400">{supportMessage.message}</p>
-          <Button onClick={supportMessage.buttonAction} fullWidth>
-            {supportMessage.buttonText}
-          </Button>
+          <div className="space-y-3">
+            <Button onClick={supportMessage.buttonAction} fullWidth>
+              {supportMessage.buttonText}
+            </Button>
+            {supportConfig.support_vk_url && (
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => openLink(supportConfig.support_vk_url!, { tryInstantView: false })}
+              >
+                <svg
+                  className="mr-2 h-4 w-4 text-[#0077FF]"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M21.547 7h-3.29a.743.743 0 0 0-.655.392s-1.312 2.416-1.79 3.252c-1.314 2.397-1.994 2.652-2.23 2.652-.24 0-.974-.158-.974-1.644 0-1.066.073-2.128.073-3.194 0-1.064-.64-2.458-2.54-2.458-2.034 0-3.545 1.34-3.545 1.34S7.1 7 7.1 7H3.66c-.452 0-.87.358-.87.852 0 .494.358.87.87.87h.756c.408 0 .7.31.7.752v3.688c0 .44-.29.752-.7.752h-.756c-.512 0-.87.376-.87.87 0 .494.358.87.87.87h3.736c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87h-.756c-.41 0-.7-.312-.7-.752V10.78c.256-.366 1.098-1.356 2.386-1.356.718 0 1.022.42 1.022 1.588v2.308c0 .44-.292.752-.7.752h-.758c-.51 0-.87.376-.87.87 0 .494.36.87.87.87h3.74c.51 0 .87-.376.87-.87 0-.494-.36-.87-.87-.87h-.76c-.408 0-.7-.312-.7-.752V9.858c0-.35.096-.716.34-.98C12.31 8.582 13.002 8 14.146 8c1.098 0 1.366.534 1.366 1.532 0 .926-.07 1.888-.07 2.888 0 1.61.75 2.376 2.28 2.376 1.56 0 2.564-1.218 3.118-2.26.31-.584 1.25-2.452 1.25-2.452.278-.534.67-.732 1.04-.732h.418c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87z" />
+                </svg>
+                ВКонтакте
+              </Button>
+            )}
+          </div>
         </Card>
       </div>
     );
@@ -483,45 +535,72 @@ export default function Support() {
         </Button>
       </motion.div>
 
-      {/* Contact support card for "both" mode */}
-      {supportConfig?.support_type === 'both' && supportConfig.support_username && (
-        <motion.div variants={staggerItem}>
-          <Card className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-800">
-                <svg
-                  className="h-5 w-5 text-dark-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
+      {/* Contact support cards for "both" mode */}
+      {supportConfig?.support_type === 'both' &&
+        (supportConfig.support_tg_username || supportConfig.support_vk_url) && (
+          <motion.div variants={staggerItem} className="space-y-3">
+            {supportConfig.support_tg_username && (
+              <Card className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-dark-800">
+                    <svg
+                      className="h-5 w-5 text-dark-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-dark-100">
+                      {t('support.contactUs')}
+                    </div>
+                    <div className="text-xs text-dark-400">{supportConfig.support_tg_username}</div>
+                  </div>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    const username = supportConfig.support_tg_username!.startsWith('@')
+                      ? supportConfig.support_tg_username!.slice(1)
+                      : supportConfig.support_tg_username!;
+                    openTelegramLink(`https://t.me/${username}`);
+                  }}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-dark-100">{t('support.contactUs')}</div>
-                <div className="text-xs text-dark-400">{supportConfig.support_username}</div>
-              </div>
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                const username = supportConfig.support_username!.startsWith('@')
-                  ? supportConfig.support_username!.slice(1)
-                  : supportConfig.support_username!;
-                openTelegramLink(`https://t.me/${username}`);
-              }}
-            >
-              {t('support.contactUs')}
-            </Button>
-          </Card>
-        </motion.div>
-      )}
+                  {t('support.contactUs')}
+                </Button>
+              </Card>
+            )}
+
+            {supportConfig.support_vk_url && (
+              <Card className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0077FF]/10">
+                    <svg className="h-5 w-5 text-[#0077FF]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M21.547 7h-3.29a.743.743 0 0 0-.655.392s-1.312 2.416-1.79 3.252c-1.314 2.397-1.994 2.652-2.23 2.652-.24 0-.974-.158-.974-1.644 0-1.066.073-2.128.073-3.194 0-1.064-.64-2.458-2.54-2.458-2.034 0-3.545 1.34-3.545 1.34S7.1 7 7.1 7H3.66c-.452 0-.87.358-.87.852 0 .494.358.87.87.87h.756c.408 0 .7.31.7.752v3.688c0 .44-.29.752-.7.752h-.756c-.512 0-.87.376-.87.87 0 .494.358.87.87.87h3.736c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87h-.756c-.41 0-.7-.312-.7-.752V10.78c.256-.366 1.098-1.356 2.386-1.356.718 0 1.022.42 1.022 1.588v2.308c0 .44-.292.752-.7.752h-.758c-.51 0-.87.376-.87.87 0 .494.36.87.87.87h3.74c.51 0 .87-.376.87-.87 0-.494-.36-.87-.87-.87h-.76c-.408 0-.7-.312-.7-.752V9.858c0-.35.096-.716.34-.98C12.31 8.582 13.002 8 14.146 8c1.098 0 1.366.534 1.366 1.532 0 .926-.07 1.888-.07 2.888 0 1.61.75 2.376 2.28 2.376 1.56 0 2.564-1.218 3.118-2.26.31-.584 1.25-2.452 1.25-2.452.278-.534.67-.732 1.04-.732h.418c.512 0 .87-.376.87-.87 0-.494-.358-.87-.87-.87z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-dark-100">ВКонтакте</div>
+                    <div className="text-xs text-dark-400">{supportConfig.support_vk_url}</div>
+                  </div>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => openLink(supportConfig.support_vk_url!, { tryInstantView: false })}
+                >
+                  {t('support.contactUs')}
+                </Button>
+              </Card>
+            )}
+          </motion.div>
+        )}
 
       <motion.div variants={staggerItem} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Tickets List */}

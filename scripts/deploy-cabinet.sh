@@ -30,13 +30,9 @@ cleanup() {
 trap cleanup EXIT
 
 log "Building image via docker compose"
-docker compose build
+docker-compose build
 
-IMAGE="$(docker compose config --images | head -n1)"
-if [[ -z "$IMAGE" ]]; then
-  echo "Failed to resolve built image name" >&2
-  exit 1
-fi
+IMAGE="bedolaga-cabinet_cabinet-frontend:latest"
 log "Built image: $IMAGE"
 
 log "Extracting static files to $LOCAL_DIST"
