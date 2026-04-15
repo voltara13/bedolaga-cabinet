@@ -33,6 +33,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { PermissionRoute } from '@/components/auth/PermissionRoute';
 import { saveReturnUrl } from './utils/token';
 import { useAnalyticsCounters } from './hooks/useAnalyticsCounters';
+import { useBranding } from './hooks/useBranding';
 // Auth pages - load immediately (small)
 import Login from './pages/Login';
 import TelegramCallback from './pages/TelegramCallback';
@@ -267,6 +268,7 @@ function LegacySubscriptionRedirect() {
 
 function App() {
   useAnalyticsCounters();
+  useBranding();
 
   return (
     <>
