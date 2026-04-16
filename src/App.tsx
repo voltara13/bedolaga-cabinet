@@ -36,6 +36,7 @@ import { useAnalyticsCounters } from './hooks/useAnalyticsCounters';
 import { useBranding } from './hooks/useBranding';
 // Auth pages - load immediately (small)
 import Login from './pages/Login';
+import Home from './pages/Home';
 import TelegramCallback from './pages/TelegramCallback';
 import TelegramRedirect from './pages/TelegramRedirect';
 import DeepLinkRedirect from './pages/DeepLinkRedirect';
@@ -195,9 +196,11 @@ function PublicWithLayoutRoute({ children }: { children: React.ReactNode }) {
 function ProtectedRoute({
   children,
   withLayout = true,
+  unauthRedirect = '/login',
 }: {
   children: React.ReactNode;
   withLayout?: boolean;
+  unauthRedirect?: string;
 }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -208,8 +211,10 @@ function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    saveReturnUrl();
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    if (unauthRedirect === '/login') {
+      saveReturnUrl();
+    }
+    return <Navigate to={unauthRedirect} replace state={{ from: location.pathname }} />;
   }
 
   return withLayout ? <Layout>{children}</Layout> : <>{children}</>;
@@ -275,6 +280,7 @@ function App() {
       <BlockingOverlay />
       <Routes>
         {/* Public routes */}
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/auth/telegram/callback" element={<TelegramCallback />} />
         <Route path="/auth/telegram" element={<TelegramRedirect />} />
@@ -327,7 +333,7 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute unauthRedirect="/home">
               <LazyPage>
                 <Dashboard />
               </LazyPage>

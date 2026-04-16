@@ -4682,5 +4682,100 @@
         "linkUrlPrompt": "URL:"
       }
     }
+  },
+  "home": {
+    "meta": {
+      "title": "Fast and Secure VPN"
+    },
+    "header": {
+      "cabinet": "Personal Account",
+      "cabinetShort": "Sign In"
+    },
+    "hero": {
+      "badge": "Servers Online",
+      "titleLead": "Internet freedom —",
+      "titleAccent": "without borders or limits",
+      "subtitle": "A modern VPN with traffic protection and high speed. Get connected in just a couple of minutes on any device.",
+      "ctaPrimary": "Get Started",
+      "ctaSecondary": "Learn More"
+    },
+    "stats": {
+      "servers": {
+        "value": "Over 4 years",
+        "label": "of stable operation"
+      },
+      "devices": {
+        "value": "Up to 5",
+        "label": "devices per account"
+      },
+      "uptime": {
+        "value": "Up to 1TB",
+        "label": "of traffic per month"
+      }
+    },
+    "features": {
+      "title": "Why Choose Us",
+      "subtitle": "Everything you need for a comfortable and secure internet experience.",
+      "items": {
+        "security": {
+          "title": "Reliable Encryption",
+          "description": "Modern VLESS and Reality protocols protect your traffic from providers and prying eyes."
+        },
+        "speed": {
+          "title": "High Speed",
+          "description": "Carefully tuned servers let you watch 4K videos and play online games without lag."
+        },
+        "servers": {
+          "title": "Cascading Architecture",
+          "description": "Minimal latency for domestic websites."
+        },
+        "devices": {
+          "title": "All Devices",
+          "description": "Works on Windows, macOS, Linux, iOS, and Android. Connect multiple devices at the same time."
+        },
+        "privacy": {
+          "title": "No Logs",
+          "description": "We do not store browsing history or share data with third parties. Anonymity is the default."
+        },
+        "support": {
+          "title": "24/7 Support",
+          "description": "Live technical support on Telegram and VK. We’ll help with setup and answer any questions."
+        }
+      }
+    },
+    "steps": {
+      "title": "How to Get Started",
+      "subtitle": "Three simple steps — and you're on a protected internet connection.",
+      "items": {
+        "register": {
+          "title": "Sign In to Your Account",
+          "description": "Log in via Telegram, email, or any other convenient method. It’s free and takes just seconds."
+        },
+        "choose": {
+          "title": "Choose a Plan",
+          "description": "Pick the subscription that fits your needs."
+        },
+        "connect": {
+          "title": "Connect",
+          "description": "Download the app, import your subscription key, and use the VPN on any device."
+        }
+      }
+    },
+    "why": {
+      "title": "VPN Without Compromise",
+      "subtitle": "We focus on what matters most: speed, stability, and privacy without unnecessary complexity.",
+      "items": {
+        "noLogs": "A strict no-logs policy and transparent service operation",
+        "modernProtocols": "Modern protocols",
+        "unlimited": "Minimal latency",
+        "support": "Fast support on Telegram and VK"
+      }
+    },
+    "cta": {
+      "title": "Ready to Try?",
+      "subtitle": "Sign in to your account, choose a plan, and activate your subscription in just a couple of minutes.",
+      "primary": "Go to Personal Account",
+      "secondary": "Contact Support"
+    }
   }
 }
