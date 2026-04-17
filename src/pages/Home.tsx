@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link, Navigate } from 'react-router';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth';
 import { useBranding } from '../hooks/useBranding';
@@ -104,26 +104,14 @@ export default function Home() {
   const { t } = useTranslation();
   const { appName, logoLetter, hasCustomLogo, logoUrl } = useBranding();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const isAuthLoading = useAuthStore((state) => state.isLoading);
   const [logoLoaded, setLogoLoaded] = useState(false);
 
   useEffect(() => {
     document.title = appName ? `${appName} — ${t('home.meta.title')}` : t('home.meta.title');
   }, [appName, t]);
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-dark-950">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  const cabinetCtaHref = '/login';
+  // Authed user: send them straight to the cabinet instead of /login.
+  const cabinetCtaHref = isAuthenticated ? '/' : '/login';
 
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-dark-950 text-dark-100">

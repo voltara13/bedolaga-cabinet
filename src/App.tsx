@@ -34,6 +34,7 @@ import { PermissionRoute } from '@/components/auth/PermissionRoute';
 import { saveReturnUrl } from './utils/token';
 import { useAnalyticsCounters } from './hooks/useAnalyticsCounters';
 import { useBranding } from './hooks/useBranding';
+import { useHostGuard } from './hooks/useHostGuard';
 // Auth pages - load immediately (small)
 import Login from './pages/Login';
 import Home from './pages/Home';
@@ -274,6 +275,7 @@ function LegacySubscriptionRedirect() {
 function App() {
   useAnalyticsCounters();
   useBranding();
+  useHostGuard();
 
   return (
     <>

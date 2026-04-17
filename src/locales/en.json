@@ -4709,7 +4709,7 @@
         "label": "devices per account"
       },
       "uptime": {
-        "value": "Up to 1TB",
+        "value": "Up to 1 TB",
         "label": "of traffic per month"
       }
     },
