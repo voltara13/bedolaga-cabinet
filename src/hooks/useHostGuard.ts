@@ -2,32 +2,29 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
 /**
- * Paths allowed on the apex (public) domain. Everything else is cabinet-only
- * and must live on the cabinet subdomain.
+ * Paths that must live on the public (apex) host only — the landing and other
+ * marketing pages. Everything else (including /login and auth flows) belongs
+ * on the cabinet host so that auth tokens stay on the origin that needs them.
  */
-const APEX_PATH_PREFIXES = [
-  '/home',
-  '/login',
-  '/info',
-  '/auth',
-  '/verify-email',
-  '/reset-password',
-  '/merge',
-];
+const APEX_ONLY_PREFIXES = ['/home', '/info'];
 
-function isApexPath(pathname: string): boolean {
-  return APEX_PATH_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
-  );
+function matchesAny(pathname: string, prefixes: string[]): boolean {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(p + '/'));
 }
 
 /**
- * When VITE_CABINET_HOST is set and the SPA is currently rendered on a host
- * other than that cabinet host, any non-public route is redirected (full page)
- * to the same path on the cabinet host. Public landing/auth routes stay on the
- * apex host.
+ * Bidirectional host guard for a landing / cabinet split setup.
  *
- * Leave VITE_CABINET_HOST empty to disable (single-domain deployments).
+ * Requires `VITE_CABINET_HOST` to be set (e.g. `cabinet.example.com`).
+ * Apex host is derived by stripping the first DNS label from the cabinet host,
+ * or provide it explicitly via `VITE_PUBLIC_HOST` for non-standard setups.
+ *
+ * Behavior:
+ * - On apex host + cabinet path → full-page redirect to the cabinet host.
+ * - On cabinet host + apex-only path → full-page redirect to the apex host.
+ * - Otherwise: no-op.
+ *
+ * Leave `VITE_CABINET_HOST` empty to disable (single-domain deployments).
  */
 export function useHostGuard() {
   const location = useLocation();
@@ -37,11 +34,27 @@ export function useHostGuard() {
     if (!cabinetHost) return;
 
     const currentHost = window.location.hostname;
-    if (currentHost === cabinetHost) return;
+    const isOnCabinet = currentHost === cabinetHost;
+    const isApexOnly = matchesAny(location.pathname, APEX_ONLY_PREFIXES);
+    const suffix = `${location.pathname}${location.search}${location.hash}`;
+    const proto = window.location.protocol;
 
-    if (isApexPath(location.pathname)) return;
+    // Cabinet-only path rendered on apex → push to cabinet
+    if (!isOnCabinet && !isApexOnly) {
+      window.location.replace(`${proto}//${cabinetHost}${suffix}`);
+      return;
+    }
 
-    const target = `${window.location.protocol}//${cabinetHost}${location.pathname}${location.search}${location.hash}`;
-    window.location.replace(target);
+    // Apex-only path rendered on cabinet → push to apex
+    if (isOnCabinet && isApexOnly) {
+      const explicitApex = import.meta.env.VITE_PUBLIC_HOST;
+      const derivedApex = cabinetHost.includes('.')
+        ? cabinetHost.slice(cabinetHost.indexOf('.') + 1)
+        : '';
+      const apexHost = explicitApex || derivedApex;
+      if (apexHost && apexHost !== currentHost) {
+        window.location.replace(`${proto}//${apexHost}${suffix}`);
+      }
+    }
   }, [location]);
 }
