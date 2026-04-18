@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react';
-import { Routes, Route, Navigate, useLocation, useParams, Link } from 'react-router';
+import { Routes, Route, Navigate, useLocation, useNavigate, useParams, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from './store/auth';
 
@@ -153,12 +153,23 @@ const AdminNewsCreate = lazyWithRetry(() => import('./pages/AdminNewsCreate'));
 
 function PublicPageLayout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/home');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-dark-950 text-dark-50">
       <header className="sticky top-0 z-50 border-b border-dark-800/50 bg-dark-950/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4">
-          <Link
-            to="/login"
+          <button
+            type="button"
+            onClick={handleBack}
             className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-dark-400 transition-colors hover:bg-dark-800 hover:text-dark-200"
           >
             <svg
@@ -171,7 +182,7 @@ function PublicPageLayout({ children }: { children: React.ReactNode }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
             {t('common.back')}
-          </Link>
+          </button>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
