@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { brandingApi, setCachedBranding } from '../../api/branding';
+import { useLogoBlobUrl } from '../../hooks/useLogoBlobUrl';
 import { setCachedFullscreenEnabled } from '../../hooks/useTelegramSDK';
 import { UploadIcon, TrashIcon, PencilIcon, CheckIcon, CloseIcon } from './icons';
 import { Toggle } from './Toggle';
@@ -18,6 +19,7 @@ export function BrandingTab({ accentColor = '#3b82f6' }: BrandingTabProps) {
 
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
+  const logoBlobUrl = useLogoBlobUrl();
 
   // Queries
   const { data: branding } = useQuery({
@@ -112,12 +114,8 @@ export function BrandingTab({ accentColor = '#3b82f6' }: BrandingTabProps) {
                 background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
               }}
             >
-              {branding?.has_custom_logo ? (
-                <img
-                  src={brandingApi.getLogoUrl(branding) ?? undefined}
-                  alt="Logo"
-                  className="h-full w-full object-cover"
-                />
+              {branding?.has_custom_logo && logoBlobUrl ? (
+                <img src={logoBlobUrl} alt="Logo" className="h-full w-full object-cover" />
               ) : (
                 branding?.logo_letter || 'V'
               )}

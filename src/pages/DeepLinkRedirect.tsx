@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { brandingApi } from '../api/branding';
+import { useLogoBlobUrl } from '../hooks/useLogoBlobUrl';
 
 type Status = 'countdown' | 'fallback' | 'error';
 
@@ -59,7 +60,7 @@ export default function DeepLinkRedirect() {
 
   const projectName = branding ? branding.name : import.meta.env.VITE_APP_NAME || 'VPN';
   const logoLetter = branding?.logo_letter || import.meta.env.VITE_APP_LOGO || 'V';
-  const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
+  const logoUrl = useLogoBlobUrl();
 
   // Parse raw query string to preserve '+' chars in base64 crypto links.
   // URLSearchParams decodes '+' as space, breaking ss://, vless:// etc.

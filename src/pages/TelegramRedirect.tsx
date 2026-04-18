@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../store/auth';
 import { useShallow } from 'zustand/shallow';
 import { brandingApi } from '../api/branding';
+import { useLogoBlobUrl } from '../hooks/useLogoBlobUrl';
 import { isInTelegramWebApp, getTelegramInitData } from '../hooks/useTelegramSDK';
 import { tokenStorage } from '../utils/token';
 
@@ -62,7 +63,7 @@ export default function TelegramRedirect() {
 
   const appName = branding ? branding.name : import.meta.env.VITE_APP_NAME || 'VPN';
   const logoLetter = branding?.logo_letter || import.meta.env.VITE_APP_LOGO || 'V';
-  const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
+  const logoUrl = useLogoBlobUrl();
 
   // Get redirect target from URL params (validated)
   const redirectTo = getSafeRedirectUrl(searchParams.get('redirect'));

@@ -11,6 +11,7 @@ import {
   preloadLogo,
   isLogoPreloaded,
 } from '@/api/branding';
+import { useLogoBlobUrl } from '@/hooks/useLogoBlobUrl';
 import { cn } from '@/lib/utils';
 import { usePlatform } from '@/platform';
 // Icons
@@ -72,7 +73,7 @@ export function DesktopSidebar({
   const appName = branding ? branding.name : FALLBACK_NAME;
   const logoLetter = branding?.logo_letter || FALLBACK_LOGO;
   const hasCustomLogo = branding?.has_custom_logo || false;
-  const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
+  const logoUrl = useLogoBlobUrl();
 
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);

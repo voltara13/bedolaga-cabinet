@@ -15,6 +15,7 @@ import {
   type BrandingInfo,
   type EmailAuthEnabled,
 } from '../api/branding';
+import { useLogoBlobUrl } from '../hooks/useLogoBlobUrl';
 import { getAndClearReturnUrl, tokenStorage } from '../utils/token';
 import { isInTelegramWebApp, getTelegramInitData, useTelegramSDK } from '../hooks/useTelegramSDK';
 import { closeMiniApp } from '@telegram-apps/sdk-react';
@@ -149,7 +150,7 @@ export default function Login() {
 
   const appName = branding ? branding.name : import.meta.env.VITE_APP_NAME || 'VPN';
   const appLogo = branding?.logo_letter || import.meta.env.VITE_APP_LOGO || 'V';
-  const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
+  const logoUrl = useLogoBlobUrl();
 
   // Set document title
   useEffect(() => {

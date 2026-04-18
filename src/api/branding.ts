@@ -45,25 +45,27 @@ export interface AnalyticsCounters {
 }
 
 const BRANDING_CACHE_KEY = 'cabinet_branding';
-const LOGO_PRELOADED_KEY = 'cabinet_logo_preloaded';
 
-// In-memory blob URL cache to avoid exposing backend URL
+// In-memory blob URL cache to avoid exposing backend URL.
+// This is only valid for the current page lifetime — it's reset on reload,
+// so readiness must be derived from the in-memory value, not from storage.
 let _logoBlobUrl: string | null = null;
 
-// Check if logo was already preloaded in this session
-export const isLogoPreloaded = (): boolean => {
-  try {
-    if (_logoBlobUrl) return true;
-    const cached = getCachedBranding();
-    if (!cached?.has_custom_logo || !cached?.logo_url) {
-      return false;
-    }
-    const preloaded = sessionStorage.getItem(LOGO_PRELOADED_KEY);
-    return preloaded === cached.logo_url;
-  } catch {
-    return false;
-  }
-};
+type BlobListener = () => void;
+const blobListeners = new Set<BlobListener>();
+
+function notifyBlobChange() {
+  blobListeners.forEach((listener) => listener());
+}
+
+export function subscribeLogoBlob(listener: BlobListener): () => void {
+  blobListeners.add(listener);
+  return () => {
+    blobListeners.delete(listener);
+  };
+}
+
+export const isLogoPreloaded = (): boolean => _logoBlobUrl !== null;
 
 // Get cached branding from sessionStorage
 export const getCachedBranding = (): BrandingInfo | null => {
@@ -98,13 +100,7 @@ export const preloadLogo = async (branding: BrandingInfo): Promise<void> => {
     return;
   }
 
-  // Check if already preloaded in this session
   if (_logoBlobUrl) {
-    return;
-  }
-
-  const preloaded = sessionStorage.getItem(LOGO_PRELOADED_KEY);
-  if (preloaded === branding.logo_url && _logoBlobUrl) {
     return;
   }
 
@@ -114,12 +110,8 @@ export const preloadLogo = async (branding: BrandingInfo): Promise<void> => {
     if (!response.ok) return;
 
     const blob = await response.blob();
-    // Revoke previous blob URL if exists
-    if (_logoBlobUrl) {
-      URL.revokeObjectURL(_logoBlobUrl);
-    }
     _logoBlobUrl = URL.createObjectURL(blob);
-    sessionStorage.setItem(LOGO_PRELOADED_KEY, branding.logo_url);
+    notifyBlobChange();
   } catch {
     // Fetch failed, logo will use letter fallback
   }
@@ -158,8 +150,8 @@ export const brandingApi = {
     if (_logoBlobUrl) {
       URL.revokeObjectURL(_logoBlobUrl);
       _logoBlobUrl = null;
+      notifyBlobChange();
     }
-    sessionStorage.removeItem(LOGO_PRELOADED_KEY);
     return response.data;
   },
 
@@ -169,14 +161,9 @@ export const brandingApi = {
     if (_logoBlobUrl) {
       URL.revokeObjectURL(_logoBlobUrl);
       _logoBlobUrl = null;
+      notifyBlobChange();
     }
-    sessionStorage.removeItem(LOGO_PRELOADED_KEY);
     return response.data;
-  },
-
-  // Get logo URL as blob (hides backend URL from DOM)
-  getLogoUrl: (_branding: BrandingInfo): string | null => {
-    return _logoBlobUrl;
   },
 
   // Get animation enabled (public, no auth required)

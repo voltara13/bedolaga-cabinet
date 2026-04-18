@@ -15,6 +15,7 @@ import {
   preloadLogo,
   isLogoPreloaded,
 } from '@/api/branding';
+import { useLogoBlobUrl } from '@/hooks/useLogoBlobUrl';
 import { themeColorsApi } from '@/api/themeColors';
 import { cn } from '@/lib/utils';
 
@@ -108,7 +109,7 @@ export function AppHeader({
   const appName = branding ? branding.name : FALLBACK_NAME;
   const logoLetter = branding?.logo_letter || FALLBACK_LOGO;
   const hasCustomLogo = branding?.has_custom_logo || false;
-  const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
+  const logoUrl = useLogoBlobUrl();
 
   // Theme toggle visibility
   const { data: enabledThemes } = useQuery({

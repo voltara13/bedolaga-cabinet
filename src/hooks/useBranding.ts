@@ -8,6 +8,7 @@ import {
   preloadLogo,
   isLogoPreloaded,
 } from '@/api/branding';
+import { useLogoBlobUrl } from '@/hooks/useLogoBlobUrl';
 
 const FALLBACK_NAME = import.meta.env.VITE_APP_NAME || 'Cabinet';
 const FALLBACK_LOGO = import.meta.env.VITE_APP_LOGO || 'V';
@@ -32,7 +33,7 @@ export function useBranding() {
   const appName = branding ? branding.name : FALLBACK_NAME;
   const logoLetter = branding?.logo_letter || FALLBACK_LOGO;
   const hasCustomLogo = branding?.has_custom_logo || false;
-  const logoUrl = branding ? brandingApi.getLogoUrl(branding) : null;
+  const logoUrl = useLogoBlobUrl();
 
   // Set document title
   useEffect(() => {
