@@ -346,7 +346,7 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute unauthRedirect="/home">
+            <ProtectedRoute unauthRedirect="/login">
               <LazyPage>
                 <Dashboard />
               </LazyPage>

@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/auth';
 import { useBranding } from '../hooks/useBranding';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
@@ -103,15 +102,34 @@ const STEPS: { key: 'register' | 'choose' | 'connect' }[] = [
 export default function Home() {
   const { t } = useTranslation();
   const { appName, logoLetter, hasCustomLogo, logoUrl } = useBranding();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [logoLoaded, setLogoLoaded] = useState(false);
 
   useEffect(() => {
     document.title = appName ? `${appName} — ${t('home.meta.title')}` : t('home.meta.title');
   }, [appName, t]);
 
-  // Authed user: send them straight to the cabinet instead of /login.
-  const cabinetCtaHref = isAuthenticated ? '/' : '/login';
+  const cabinetHost = import.meta.env.VITE_CABINET_HOST;
+  const needsCrossOrigin = Boolean(cabinetHost) && cabinetHost !== window.location.hostname;
+  const cabinetCtaHref = needsCrossOrigin ? `${window.location.protocol}//${cabinetHost}/` : '/';
+
+  const CabinetCta = ({
+    children,
+    className,
+    ariaLabel,
+  }: {
+    children: ReactNode;
+    className: string;
+    ariaLabel?: string;
+  }) =>
+    needsCrossOrigin ? (
+      <a href={cabinetCtaHref} className={className} aria-label={ariaLabel}>
+        {children}
+      </a>
+    ) : (
+      <Link to={cabinetCtaHref} className={className} aria-label={ariaLabel}>
+        {children}
+      </Link>
+    );
 
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-dark-950 text-dark-100">
@@ -148,20 +166,16 @@ export default function Home() {
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <Link
-              to={cabinetCtaHref}
-              className="btn-primary hidden h-9 px-4 text-sm sm:inline-flex"
-            >
+            <CabinetCta className="btn-primary hidden h-9 px-4 text-sm sm:inline-flex">
               {t('home.header.cabinet')}
               <ArrowRightIcon />
-            </Link>
-            <Link
-              to={cabinetCtaHref}
+            </CabinetCta>
+            <CabinetCta
               className="btn-primary inline-flex h-9 px-3 text-sm sm:hidden"
-              aria-label={t('home.header.cabinet')}
+              ariaLabel={t('home.header.cabinet')}
             >
               {t('home.header.cabinetShort')}
-            </Link>
+            </CabinetCta>
           </div>
         </div>
       </header>
@@ -188,10 +202,10 @@ export default function Home() {
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to={cabinetCtaHref} className="btn-primary h-11 px-6 text-sm">
+            <CabinetCta className="btn-primary h-11 px-6 text-sm">
               {t('home.hero.ctaPrimary')}
               <ArrowRightIcon />
-            </Link>
+            </CabinetCta>
             <a href="#features" className="btn-secondary h-11 px-6 text-sm">
               {t('home.hero.ctaSecondary')}
             </a>
@@ -315,10 +329,10 @@ export default function Home() {
                 {t('home.cta.subtitle')}
               </p>
               <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link to={cabinetCtaHref} className="btn-primary h-11 px-6 text-sm">
+                <CabinetCta className="btn-primary h-11 px-6 text-sm">
                   {t('home.cta.primary')}
                   <ArrowRightIcon />
-                </Link>
+                </CabinetCta>
                 <Link to="/support" className="btn-secondary h-11 px-6 text-sm">
                   {t('home.cta.secondary')}
                 </Link>
