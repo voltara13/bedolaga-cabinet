@@ -119,11 +119,20 @@ export default function SubscriptionListCard({
     >
       {/* Header: tariff name + status badge + chevron */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-base font-semibold" style={{ color: g.text }}>
-            {subscription.tariff_name || t('subscription.defaultName', 'Подписка')}
-          </span>
-          <StatusBadge status={subscription.status} isTrial={isTrial} t={t} />
+        <div className="flex min-w-0 flex-col">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-base font-semibold" style={{ color: g.text }}>
+              {subscription.name ||
+                subscription.tariff_name ||
+                t('subscription.defaultName', 'Подписка')}
+            </span>
+            <StatusBadge status={subscription.status} isTrial={isTrial} t={t} />
+          </div>
+          {subscription.name && subscription.tariff_name && (
+            <span className="mt-0.5 truncate text-[11px]" style={{ color: g.textSecondary }}>
+              {subscription.tariff_name}
+            </span>
+          )}
         </div>
         <svg
           className="h-4 w-4 shrink-0 opacity-30"

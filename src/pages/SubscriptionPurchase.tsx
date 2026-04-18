@@ -145,6 +145,11 @@ export default function SubscriptionPurchase() {
   const [useCustomDays, setUseCustomDays] = useState(false);
   const [useCustomTraffic, setUseCustomTraffic] = useState(false);
 
+  // Optional custom subscription name (applies to both classic and tariff purchase)
+  const [customName, setCustomName] = useState<string>('');
+  const trimmedCustomName = customName.trim();
+  const customNameForApi = trimmedCustomName ? trimmedCustomName : undefined;
+
   // Refs for auto-scroll
   const switchModalRef = useRef<HTMLDivElement>(null);
   const tariffPurchaseRef = useRef<HTMLDivElement>(null);
@@ -239,7 +244,8 @@ export default function SubscriptionPurchase() {
 
   // Classic purchase mutation
   const purchaseMutation = useMutation({
-    mutationFn: () => subscriptionApi.submitPurchase(currentSelection, subscriptionId),
+    mutationFn: () =>
+      subscriptionApi.submitPurchase(currentSelection, subscriptionId, customNameForApi),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription', subscriptionId] });
       queryClient.invalidateQueries({ queryKey: ['purchase-options', subscriptionId] });
@@ -304,7 +310,7 @@ export default function SubscriptionPurchase() {
           : selectedTariffPeriod?.days || 30;
       const trafficGb =
         useCustomTraffic && selectedTariff.custom_traffic_enabled ? customTrafficGb : undefined;
-      return subscriptionApi.purchaseTariff(selectedTariff.id, days, trafficGb);
+      return subscriptionApi.purchaseTariff(selectedTariff.id, days, trafficGb, customNameForApi);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
@@ -1017,6 +1023,22 @@ export default function SubscriptionPurchase() {
                       </span>
                     </div>
                   </div>
+                </div>
+
+                {/* Optional custom subscription name */}
+                <div className="rounded-xl bg-dark-800/50 p-4">
+                  <label className="mb-2 block text-sm font-medium text-dark-200">
+                    {t('subscription.name.label')}
+                  </label>
+                  <input
+                    type="text"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                    placeholder={t('subscription.name.placeholder')}
+                    maxLength={255}
+                    className="input w-full text-sm"
+                  />
+                  <div className="mt-1 text-xs text-dark-500">{t('subscription.name.hint')}</div>
                 </div>
 
                 {/* Daily Tariff Purchase */}
@@ -1842,7 +1864,21 @@ export default function SubscriptionPurchase() {
 
               {/* Step: Confirm */}
               {currentStep === 'confirm' && (
-                <div>
+                <div className="space-y-4">
+                  <div className="rounded-xl bg-dark-800/50 p-5">
+                    <label className="mb-2 block text-sm font-medium text-dark-200">
+                      {t('subscription.name.label')}
+                    </label>
+                    <input
+                      type="text"
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      placeholder={t('subscription.name.placeholder')}
+                      maxLength={255}
+                      className="input w-full text-sm"
+                    />
+                    <div className="mt-1 text-xs text-dark-500">{t('subscription.name.hint')}</div>
+                  </div>
                   {previewLoading ? (
                     <div className="flex items-center justify-center py-8">
                       <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" />

@@ -71,6 +71,7 @@ export interface TrafficPurchase {
 
 export interface Subscription {
   id: number;
+  name?: string | null;
   status: string;
   is_trial: boolean;
   start_date: string;
@@ -113,6 +114,7 @@ export interface SubscriptionStatusResponse {
 // Multi-tariff subscription list item (from GET /cabinet/subscriptions)
 export interface SubscriptionListItem {
   id: number;
+  name?: string | null;
   status: string;
   tariff_id: number | null;
   tariff_name: string | null;

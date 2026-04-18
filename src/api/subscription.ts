@@ -359,15 +359,18 @@ export const subscriptionApi = {
   submitPurchase: async (
     selection: PurchaseSelection,
     subscriptionId?: number,
+    name?: string | null,
   ): Promise<{
     success: boolean;
     message: string;
     subscription: Subscription;
     was_trial_conversion: boolean;
   }> => {
+    const body: Record<string, unknown> = { selection };
+    if (name !== undefined) body.name = name;
     const response = await apiClient.post(
       '/cabinet/subscription/purchase',
-      ...bodyWithSubId({ selection }, subscriptionId),
+      ...bodyWithSubId(body, subscriptionId),
     );
     return response.data;
   },
@@ -376,6 +379,7 @@ export const subscriptionApi = {
     tariffId: number,
     periodDays: number,
     trafficGb?: number,
+    name?: string | null,
   ): Promise<{
     success: boolean;
     message: string;
@@ -385,11 +389,24 @@ export const subscriptionApi = {
     balance_kopeks: number;
     balance_label: string;
   }> => {
-    const response = await apiClient.post('/cabinet/subscription/purchase-tariff', {
+    const body: Record<string, unknown> = {
       tariff_id: tariffId,
       period_days: periodDays,
       traffic_gb: trafficGb,
-    });
+    };
+    if (name !== undefined) body.name = name;
+    const response = await apiClient.post('/cabinet/subscription/purchase-tariff', body);
+    return response.data;
+  },
+
+  renameSubscription: async (
+    name: string | null,
+    subscriptionId?: number,
+  ): Promise<Subscription> => {
+    const response = await apiClient.patch<Subscription>(
+      '/cabinet/subscription/name',
+      ...bodyWithSubId({ name }, subscriptionId),
+    );
     return response.data;
   },
 

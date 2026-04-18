@@ -281,6 +281,34 @@ export default function Subscription() {
     },
   });
 
+  // Rename subscription
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState('');
+
+  const renameMutation = useMutation({
+    mutationFn: (name: string | null) => subscriptionApi.renameSubscription(name, subscriptionId),
+    onSuccess: () => {
+      setIsEditingName(false);
+      queryClient.invalidateQueries({ queryKey: ['subscription', subscriptionId] });
+      queryClient.invalidateQueries({ queryKey: ['subscriptions-list'] });
+    },
+  });
+
+  const startEditName = () => {
+    setEditingName(subscription?.name ?? '');
+    setIsEditingName(true);
+  };
+
+  const cancelEditName = () => {
+    setIsEditingName(false);
+    setEditingName('');
+  };
+
+  const saveEditName = () => {
+    const trimmed = editingName.trim();
+    renameMutation.mutate(trimmed.length > 0 ? trimmed : null);
+  };
+
   // Devices query
   const { data: devicesData, isLoading: devicesLoading } = useQuery({
     queryKey: ['devices', subscriptionId],
@@ -532,8 +560,8 @@ export default function Subscription() {
       <div className="flex items-center gap-3">
         <WebBackButton to={isMultiTariff ? '/subscriptions' : '/'} />
         <h1 className="text-2xl font-bold text-dark-50 sm:text-3xl">
-          {isMultiTariff && subscription?.tariff_name
-            ? subscription.tariff_name
+          {isMultiTariff && (subscription?.name || subscription?.tariff_name)
+            ? subscription.name || subscription.tariff_name
             : t('subscription.title')}
         </h1>
       </div>
@@ -588,8 +616,8 @@ export default function Subscription() {
               />
 
               {/* ─── Header ─── */}
-              <div className="mb-6 flex items-start justify-between">
-                <div>
+              <div className="mb-6 flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   {/* Zone indicator */}
                   <div className="mb-1 flex items-center gap-2">
                     <div
@@ -609,10 +637,85 @@ export default function Subscription() {
                     </span>
                   </div>
 
-                  {/* Plan name */}
-                  <h2 className="text-lg font-bold tracking-tight text-dark-50">
-                    {subscription.tariff_name || t('subscription.currentPlan')}
-                  </h2>
+                  {/* Plan name + custom name editor */}
+                  {isEditingName ? (
+                    <div className="mt-1 space-y-2">
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        placeholder={t('subscription.name.placeholder')}
+                        maxLength={255}
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveEditName();
+                          } else if (e.key === 'Escape') {
+                            e.preventDefault();
+                            cancelEditName();
+                          }
+                        }}
+                        className="input w-full text-sm"
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={saveEditName}
+                          disabled={renameMutation.isPending}
+                          className="btn-primary px-3 py-1 text-xs"
+                        >
+                          {renameMutation.isPending ? '…' : t('subscription.name.save')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditName}
+                          disabled={renameMutation.isPending}
+                          className="btn-secondary px-3 py-1 text-xs"
+                        >
+                          {t('subscription.name.cancel')}
+                        </button>
+                      </div>
+                      {renameMutation.isError && (
+                        <div className="text-xs text-error-400">
+                          {getErrorMessage(renameMutation.error) ||
+                            t('subscription.name.saveError')}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="min-w-0 text-lg font-bold tracking-tight text-dark-50">
+                        {subscription.name ||
+                          subscription.tariff_name ||
+                          t('subscription.currentPlan')}
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={startEditName}
+                        className="text-dark-400 transition-colors hover:text-dark-200"
+                        aria-label={t('subscription.name.edit')}
+                        title={t('subscription.name.edit')}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {!isEditingName && subscription.name && subscription.tariff_name && (
+                    <div className="mt-0.5 text-xs text-dark-400">{subscription.tariff_name}</div>
+                  )}
                 </div>
 
                 {/* Status badge */}

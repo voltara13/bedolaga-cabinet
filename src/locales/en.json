@@ -296,6 +296,17 @@
   "subscription": {
     "title": "Subscription",
     "currentPlan": "Current Plan",
+    "name": {
+      "label": "Subscription name",
+      "placeholder": "e.g. \"Home\" or \"Work\"",
+      "hint": "Optional. Helps distinguish subscriptions.",
+      "edit": "Edit name",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Name updated",
+      "saveError": "Failed to save name",
+      "clear": "Clear name"
+    },
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
