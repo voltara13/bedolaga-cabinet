@@ -3046,7 +3046,9 @@
           "expired": "expired",
           "daysLeft": "d left",
           "deviceLimitUpdated": "Device limit updated",
-          "invalidDays": "Please enter a valid number of days (greater than 0)"
+          "invalidDays": "Please enter a valid number of days (greater than 0)",
+          "delete": "Delete subscription",
+          "deleteSuccess": "Subscription deleted"
         },
         "balance": {
           "current": "Current balance",

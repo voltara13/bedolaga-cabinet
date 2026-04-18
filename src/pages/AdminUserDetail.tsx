@@ -1105,6 +1105,36 @@ export default function AdminUserDetail() {
     }
   };
 
+  const handleDeleteSubscription = async (subscriptionId: number) => {
+    if (!userId) return;
+    setActionLoading(true);
+    try {
+      const result = await adminUsersApi.deleteSubscription(userId, subscriptionId);
+      if (result.success) {
+        notify.success(
+          t('admin.users.detail.subscription.deleteSuccess', 'Подписка удалена'),
+          t('common.success'),
+        );
+        if (activeSubscriptionId === subscriptionId) {
+          setActiveSubscriptionId(null);
+        }
+        setSubscriptionDetailView(false);
+        await loadUser();
+      } else {
+        notify.error(result.message || t('admin.users.userActions.error'), t('common.error'));
+      }
+    } catch (error) {
+      console.error('Failed to delete subscription:', error);
+      const err = error as { response?: { data?: { detail?: string | { message?: string } } } };
+      const detail = err?.response?.data?.detail;
+      const detailMessage =
+        typeof detail === 'string' ? detail : (detail as { message?: string })?.message;
+      notify.error(detailMessage || t('admin.users.userActions.error'), t('common.error'));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDisableUser = async () => {
     if (!userId) return;
     setActionLoading(true);
@@ -1959,6 +1989,26 @@ export default function AdminUserDetail() {
                           ? t('admin.users.actions.applying')
                           : t('admin.users.actions.apply')}
                       </button>
+
+                      {selectedSub && (
+                        <button
+                          onClick={() =>
+                            handleInlineConfirm(`deleteSub-${selectedSub.id}`, () =>
+                              handleDeleteSubscription(selectedSub.id),
+                            )
+                          }
+                          disabled={actionLoading}
+                          className={`w-full rounded-lg px-3 py-2 text-sm font-medium transition-all disabled:opacity-50 ${
+                            confirmingAction === `deleteSub-${selectedSub.id}`
+                              ? 'bg-rose-500 text-white'
+                              : 'bg-rose-500/15 text-rose-400 hover:bg-rose-500/25'
+                          }`}
+                        >
+                          {confirmingAction === `deleteSub-${selectedSub.id}`
+                            ? t('admin.users.detail.actions.areYouSure')
+                            : t('admin.users.detail.subscription.delete', 'Удалить подписку')}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

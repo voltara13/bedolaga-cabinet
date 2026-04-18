@@ -638,6 +638,30 @@ export const adminUsersApi = {
     return response.data;
   },
 
+  // Delete a specific subscription
+  deleteSubscription: async (
+    userId: number,
+    subscriptionId: number,
+    options: { deactivate_in_panel?: boolean; reason?: string } = {},
+  ): Promise<{
+    success: boolean;
+    message: string;
+    subscription_deleted: boolean;
+    panel_deactivated: boolean;
+    panel_error: string | null;
+  }> => {
+    const response = await apiClient.delete(
+      `/cabinet/admin/users/${userId}/subscriptions/${subscriptionId}`,
+      {
+        params: {
+          deactivate_in_panel: options.deactivate_in_panel ?? true,
+          ...(options.reason ? { reason: options.reason } : {}),
+        },
+      },
+    );
+    return response.data;
+  },
+
   // Disable user
   disableUser: async (userId: number): Promise<{ success: boolean; message: string }> => {
     const response = await apiClient.post(`/cabinet/admin/users/${userId}/disable`);
