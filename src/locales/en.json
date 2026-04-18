@@ -4806,6 +4806,7 @@
       "from": "from",
       "daily": "Daily",
       "perDay": "/ day",
+      "perMonth": "/mo",
       "select": "Choose",
       "cta": "View all plans"
     }

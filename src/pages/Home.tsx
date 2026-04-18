@@ -150,7 +150,14 @@ export default function Home() {
     if (tariff.is_daily) {
       return tariff.daily_price_kopeks ?? null;
     }
-    return tariff.periods.length ? Math.min(...tariff.periods.map((p) => p.price_kopeks)) : null;
+    if (!tariff.periods.length) return null;
+    // Показываем минимальную стоимость за 30 дней среди всех периодов:
+    // годовой тариф эффективно дешевле месячного, и цена «от» должна это отражать.
+    return Math.min(
+      ...tariff.periods
+        .filter((p) => p.days > 0)
+        .map((p) => Math.round((p.price_kopeks / p.days) * 30)),
+    );
   };
 
   return (
@@ -350,11 +357,11 @@ export default function Home() {
                         </div>
                         <div className="mt-1 flex items-baseline gap-1 font-display text-3xl font-bold text-accent-400">
                           {formatPrice(cheapest)}
-                          {tariff.is_daily && (
-                            <span className="text-base font-normal text-dark-400">
-                              {t('home.pricing.perDay')}
-                            </span>
-                          )}
+                          <span className="text-base font-normal text-dark-400">
+                            {tariff.is_daily
+                              ? t('home.pricing.perDay')
+                              : t('home.pricing.perMonth', '/мес')}
+                          </span>
                         </div>
                       </div>
                     )}

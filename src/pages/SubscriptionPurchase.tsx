@@ -890,16 +890,30 @@ export default function SubscriptionPurchase() {
                               );
                             }
                             if (tariff.periods.length > 0) {
-                              const firstPeriod = tariff.periods[0];
+                              // Цена «от» = минимальная эффективная стоимость за месяц
+                              // среди всех периодов (годовой в пересчёте на месяц дешевле).
+                              const cheapestPeriod = tariff.periods
+                                .filter((p) => p.price_per_month_kopeks > 0)
+                                .reduce<TariffPeriod | null>(
+                                  (min, p) =>
+                                    !min || p.price_per_month_kopeks < min.price_per_month_kopeks
+                                      ? p
+                                      : min,
+                                  null,
+                                );
+                              if (!cheapestPeriod) return null;
                               const promoPeriod = applyPromoDiscount(
-                                firstPeriod?.price_kopeks || 0,
-                                firstPeriod?.original_price_kopeks,
+                                cheapestPeriod.price_per_month_kopeks,
+                                cheapestPeriod.original_per_month_kopeks,
                               );
                               return (
                                 <span className="flex flex-wrap items-center gap-2">
                                   <span>{t('subscription.from')}</span>
                                   <span className="font-medium text-accent-400">
                                     {formatPrice(promoPeriod.price)}
+                                  </span>
+                                  <span className="text-dark-400">
+                                    {t('home.pricing.perMonth', '/мес')}
                                   </span>
                                   {promoPeriod.original &&
                                     promoPeriod.original > promoPeriod.price && (
