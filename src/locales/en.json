@@ -730,6 +730,8 @@
     "paymentReady": "Payment link is ready",
     "clickToOpenPayment": "Click the button below to open the payment page in a new tab",
     "openPaymentPage": "Open payment page",
+    "receiptEmail": "Receipt email",
+    "receiptEmailHint": "The receipt will be sent to this email",
     "errors": {
       "noPaymentLink": "Server did not return a payment link",
       "starsOnlyInTelegram": "Stars payment is only available in Telegram Mini App",
@@ -738,7 +740,9 @@
       "rateLimit": "Please wait {{seconds}} sec.",
       "selectMethod": "Select a method",
       "enterAmount": "Enter an amount",
-      "amountRange": "Amount: {{min}} – {{max}} ₽"
+      "amountRange": "Amount: {{min}} – {{max}} ₽",
+      "emailRequired": "Enter your email for the receipt",
+      "emailInvalid": "Enter a valid email"
     },
     "paymentSuccess": {
       "title": "Payment Successful",

@@ -758,6 +758,8 @@
     "paymentReady": "Ссылка на оплату готова",
     "clickToOpenPayment": "Нажмите кнопку ниже, чтобы открыть страницу оплаты в новой вкладке",
     "openPaymentPage": "Открыть страницу оплаты",
+    "receiptEmail": "Email для чека",
+    "receiptEmailHint": "Чек будет отправлен на указанный email",
     "errors": {
       "noPaymentLink": "Сервер не вернул ссылку на оплату",
       "starsOnlyInTelegram": "Оплата Stars доступна только в Telegram Mini App",
@@ -766,7 +768,9 @@
       "rateLimit": "Подождите {{seconds}} сек.",
       "selectMethod": "Выберите способ",
       "enterAmount": "Введите сумму",
-      "amountRange": "Сумма: {{min}} – {{max}} ₽"
+      "amountRange": "Сумма: {{min}} – {{max}} ₽",
+      "emailRequired": "Укажите email для отправки чека",
+      "emailInvalid": "Введите корректный email"
     },
     "paymentSuccess": {
       "title": "Оплата прошла успешно",

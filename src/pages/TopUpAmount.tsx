@@ -13,6 +13,8 @@ import { staggerContainer, staggerItem } from '@/components/motion/transitions';
 import type { PaymentMethod, PaymentMethodOption } from '../types';
 import BentoCard from '../components/ui/BentoCard';
 import { saveTopUpPendingInfo } from '../utils/topUpStorage';
+import { useAuthStore } from '../store/auth';
+import { isValidEmail } from '../utils/validation';
 
 // Icons
 const StarIcon = () => (
@@ -129,6 +131,7 @@ export default function TopUpAmount() {
   const { openInvoice, openTelegramLink, openLink, platform } = usePlatform();
   const haptic = useHaptic();
   const inputRef = useRef<HTMLInputElement>(null);
+  const profileEmail = useAuthStore((state) => state.user?.email ?? '');
 
   const returnTo = searchParams.get('returnTo');
   const initialAmountRubles = searchParams.get('amount')
@@ -178,6 +181,12 @@ export default function TopUpAmount() {
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [email, setEmail] = useState<string>(profileEmail);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+
+  useEffect(() => {
+    setEmail((current) => (current ? current : profileEmail));
+  }, [profileEmail]);
 
   // If method not found in cache, redirect to method selection
   useEffect(() => {
@@ -249,7 +258,12 @@ export default function TopUpAmount() {
   >({
     mutationFn: (amountKopeks: number) => {
       if (!method) throw new Error('Method not loaded');
-      return balanceApi.createTopUp(amountKopeks, method.id, selectedOption || undefined);
+      return balanceApi.createTopUp(
+        amountKopeks,
+        method.id,
+        email.trim(),
+        selectedOption || undefined,
+      );
     },
     onSuccess: (data) => {
       const redirectUrl = data.payment_url || data.invoice_url;
@@ -337,9 +351,18 @@ export default function TopUpAmount() {
     const amountKopeks = Math.round(amountRubles * 100);
     if (isStarsMethod) {
       starsPaymentMutation.mutate(amountKopeks);
-    } else {
-      topUpMutation.mutate(amountKopeks);
+      return;
     }
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError(t('balance.errors.emailRequired', 'Укажите email для отправки чека'));
+      return;
+    }
+    if (!isValidEmail(trimmedEmail)) {
+      setError(t('balance.errors.emailInvalid', 'Введите корректный email'));
+      return;
+    }
+    topUpMutation.mutate(amountKopeks);
   };
 
   const quickAmounts = [100, 300, 500, 1000].filter((a) => a >= minRubles && a <= maxRubles);
@@ -421,6 +444,38 @@ export default function TopUpAmount() {
               </button>
             ))}
           </div>
+        </motion.div>
+      )}
+
+      {/* Email for fiscal receipt */}
+      {!isStarsMethod && (
+        <motion.div variants={staggerItem} className="space-y-2">
+          <label className="text-sm font-medium text-dark-400">
+            {t('balance.receiptEmail', 'Email для чека')}
+          </label>
+          <div
+            className={`relative rounded-2xl transition-all duration-200 ${
+              isEmailFocused
+                ? 'bg-dark-800 ring-2 ring-accent-500/50'
+                : 'border border-dark-700/50 bg-dark-800/70'
+            }`}
+          >
+            <input
+              type="email"
+              inputMode="email"
+              enterKeyHint="next"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onFocus={() => setIsEmailFocused(true)}
+              onBlur={() => setIsEmailFocused(false)}
+              placeholder="you@example.com"
+              className="h-12 w-full bg-transparent px-4 text-base text-dark-100 placeholder:text-dark-600 focus:outline-none"
+            />
+          </div>
+          <p className="text-xs text-dark-500">
+            {t('balance.receiptEmailHint', 'Чек будет отправлен на указанный email')}
+          </p>
         </motion.div>
       )}
 

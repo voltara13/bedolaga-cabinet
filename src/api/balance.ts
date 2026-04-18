@@ -42,6 +42,7 @@ export const balanceApi = {
   createTopUp: async (
     amountKopeks: number,
     paymentMethod: string,
+    email: string,
     paymentOption?: string,
   ): Promise<{
     payment_id: string;
@@ -54,11 +55,13 @@ export const balanceApi = {
     const payload: {
       amount_kopeks: number;
       payment_method: string;
+      email: string;
       payment_option?: string;
       language?: string;
     } = {
       amount_kopeks: amountKopeks,
       payment_method: paymentMethod,
+      email,
     };
     if (paymentOption) {
       payload.payment_option = paymentOption;
