@@ -32,10 +32,18 @@ function isValidContact(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
 }
 
+// Sentinel value used as period.days for the synthetic "Суточный" period
+// that represents all daily tariffs in the period selector.
+const DAILY_DAYS_SENTINEL = -1;
+
 function formatPeriodLabel(
   days: number,
   t: (key: string, options?: Record<string, unknown>) => string,
 ): string {
+  if (days === DAILY_DAYS_SENTINEL) {
+    const res = t('landing.dailyLabel');
+    return res === 'landing.dailyLabel' ? 'Суточный' : res;
+  }
   const key = `landing.periodLabels.d${days}`;
   const result = t(key);
   if (result !== key) return result;
@@ -46,6 +54,21 @@ function formatPeriodLabel(
     return t('landing.periodLabels.nMonths', { count: months });
   }
   return t('landing.periodLabels.nDays', { count: days });
+}
+
+function buildDailyPeriod(tariff: LandingTariff): LandingTariffPeriod {
+  const price = tariff.daily_price_kopeks ?? 0;
+  const original = tariff.daily_original_price_kopeks ?? null;
+  const discount = tariff.daily_discount_percent ?? null;
+  return {
+    days: DAILY_DAYS_SENTINEL,
+    label: 'daily',
+    price_kopeks: price,
+    price_label: '',
+    original_price_kopeks: original,
+    original_price_label: null,
+    discount_percent: discount,
+  };
 }
 
 function LoadingSkeleton() {
@@ -757,25 +780,34 @@ export default function QuickPurchase() {
     };
   }, []);
 
-  // Collect ALL unique periods across ALL tariffs
+  // Collect unique periods across all regular tariffs, prepending a synthetic
+  // "Суточный" entry (days=DAILY_DAYS_SENTINEL) when any daily tariff exists.
   const allPeriods = useMemo(() => {
     if (!config) return [];
+    const hasDaily = config.tariffs.some((tariff) => tariff.is_daily);
     const periodMap = new Map<number, LandingTariffPeriod>();
     for (const tariff of config.tariffs) {
+      if (tariff.is_daily) continue;
       for (const period of tariff.periods) {
         if (!periodMap.has(period.days)) {
           periodMap.set(period.days, period);
         }
       }
     }
-    return Array.from(periodMap.values()).sort((a, b) => a.days - b.days);
+    const regular = Array.from(periodMap.values()).sort((a, b) => a.days - b.days);
+    if (!hasDaily) return regular;
+    const dailyTariff = config.tariffs.find((t) => t.is_daily)!;
+    return [buildDailyPeriod(dailyTariff), ...regular];
   }, [config]);
 
   // Filter tariffs to only those that have the selected period
   const visibleTariffs = useMemo(() => {
     if (!config || !selectedPeriodDays) return config?.tariffs ?? [];
-    return config.tariffs.filter((tariff) =>
-      tariff.periods.some((p) => p.days === selectedPeriodDays),
+    if (selectedPeriodDays === DAILY_DAYS_SENTINEL) {
+      return config.tariffs.filter((tariff) => tariff.is_daily);
+    }
+    return config.tariffs.filter(
+      (tariff) => !tariff.is_daily && tariff.periods.some((p) => p.days === selectedPeriodDays),
     );
   }, [config, selectedPeriodDays]);
 
@@ -874,10 +906,13 @@ export default function QuickPurchase() {
     [config?.tariffs, selectedTariffId],
   );
 
-  const selectedPeriod = useMemo(
-    () => selectedTariff?.periods.find((p) => p.days === selectedPeriodDays),
-    [selectedTariff, selectedPeriodDays],
-  );
+  const selectedPeriod = useMemo(() => {
+    if (!selectedTariff) return undefined;
+    if (selectedTariff.is_daily) {
+      return buildDailyPeriod(selectedTariff);
+    }
+    return selectedTariff.periods.find((p) => p.days === selectedPeriodDays);
+  }, [selectedTariff, selectedPeriodDays]);
 
   const currentPrice = selectedPeriod?.price_kopeks ?? 0;
 
@@ -921,9 +956,15 @@ export default function QuickPurchase() {
       paymentMethod = `${paymentMethod}_${selectedSubOption}`;
     }
 
+    // Daily tariff is billed for 1 day up front — auto-renews from balance.
+    const periodDaysToSend =
+      selectedTariff?.is_daily || selectedPeriodDays === DAILY_DAYS_SENTINEL
+        ? 1
+        : selectedPeriodDays!;
+
     const data: PurchaseRequest = {
       tariff_id: selectedTariffId!,
-      period_days: selectedPeriodDays!,
+      period_days: periodDaysToSend,
       contact_type: detectContactType(contactValue),
       contact_value: contactValue.trim(),
       payment_method: paymentMethod,

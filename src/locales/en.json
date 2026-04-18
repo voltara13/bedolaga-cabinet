@@ -4454,6 +4454,7 @@
     "total": "Total",
     "pay": "Pay",
     "choosePeriod": "Choose period",
+    "dailyLabel": "Daily",
     "copy": "Copy",
     "copied": "Copied!",
     "copyLink": "Copy link",
@@ -4776,6 +4777,19 @@
       "subtitle": "Sign in to your account, choose a plan, and activate your subscription in just a couple of minutes.",
       "primary": "Go to Personal Account",
       "secondary": "Contact Support"
+    },
+    "pricing": {
+      "title": "Pricing",
+      "subtitle": "Pick the subscription that fits your needs.",
+      "gb": "GB",
+      "unlimited": "Unlimited",
+      "devices_one": "{{count}} device",
+      "devices_other": "{{count}} devices",
+      "from": "from",
+      "daily": "Daily",
+      "perDay": "/ day",
+      "select": "Choose",
+      "cta": "View all plans"
     }
   }
 }

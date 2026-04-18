@@ -1,8 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { useBranding } from '../hooks/useBranding';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { landingApi } from '../api/landings';
+import type { LandingTariff } from '../api/landings';
+import { formatPrice } from '../utils/format';
 
 const ShieldIcon = () => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} className="h-6 w-6">
@@ -110,26 +114,44 @@ export default function Home() {
 
   const cabinetHost = import.meta.env.VITE_CABINET_HOST;
   const needsCrossOrigin = Boolean(cabinetHost) && cabinetHost !== window.location.hostname;
-  const cabinetCtaHref = needsCrossOrigin ? `${window.location.protocol}//${cabinetHost}/` : '/';
+  const buildCabinetHref = (path: string) =>
+    needsCrossOrigin ? `${window.location.protocol}//${cabinetHost}${path}` : path;
 
-  const CabinetCta = ({
+  const CabinetLink = ({
+    to,
     children,
     className,
     ariaLabel,
   }: {
+    to: string;
     children: ReactNode;
     className: string;
     ariaLabel?: string;
   }) =>
     needsCrossOrigin ? (
-      <a href={cabinetCtaHref} className={className} aria-label={ariaLabel}>
+      <a href={buildCabinetHref(to)} className={className} aria-label={ariaLabel}>
         {children}
       </a>
     ) : (
-      <Link to={cabinetCtaHref} className={className} aria-label={ariaLabel}>
+      <Link to={to} className={className} aria-label={ariaLabel}>
         {children}
       </Link>
     );
+
+  const { data: landingData } = useQuery({
+    queryKey: ['home-landing', 'main'],
+    queryFn: () => landingApi.getConfig('main'),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const tariffs: LandingTariff[] = landingData?.tariffs ?? [];
+  const getCheapestPrice = (tariff: LandingTariff): number | null => {
+    if (tariff.is_daily) {
+      return tariff.daily_price_kopeks ?? null;
+    }
+    return tariff.periods.length ? Math.min(...tariff.periods.map((p) => p.price_kopeks)) : null;
+  };
 
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-dark-950 text-dark-100">
@@ -166,16 +188,17 @@ export default function Home() {
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <CabinetCta className="btn-primary hidden h-9 px-4 text-sm sm:inline-flex">
+            <CabinetLink to="/" className="btn-primary hidden h-9 px-4 text-sm sm:inline-flex">
               {t('home.header.cabinet')}
               <ArrowRightIcon />
-            </CabinetCta>
-            <CabinetCta
+            </CabinetLink>
+            <CabinetLink
+              to="/"
               className="btn-primary inline-flex h-9 px-3 text-sm sm:hidden"
               ariaLabel={t('home.header.cabinet')}
             >
               {t('home.header.cabinetShort')}
-            </CabinetCta>
+            </CabinetLink>
           </div>
         </div>
       </header>
@@ -202,10 +225,10 @@ export default function Home() {
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <CabinetCta className="btn-primary h-11 px-6 text-sm">
+            <CabinetLink to="/" className="btn-primary h-11 px-6 text-sm">
               {t('home.hero.ctaPrimary')}
               <ArrowRightIcon />
-            </CabinetCta>
+            </CabinetLink>
             <a href="#features" className="btn-secondary h-11 px-6 text-sm">
               {t('home.hero.ctaSecondary')}
             </a>
@@ -256,6 +279,103 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Pricing */}
+        {tariffs.length > 0 && (
+          <section id="pricing" className="mt-24 scroll-mt-20 sm:mt-28">
+            <div className="text-center">
+              <h2 className="font-display text-3xl font-bold text-dark-50 sm:text-4xl">
+                {t('home.pricing.title')}
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-sm text-dark-400 sm:text-base">
+                {t('home.pricing.subtitle')}
+              </p>
+            </div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {tariffs.map((tariff) => {
+                const cheapest = getCheapestPrice(tariff);
+                return (
+                  <CabinetLink
+                    key={tariff.id}
+                    to="/buy/main"
+                    className="card group flex flex-col transition-all hover:border-accent-500/30 hover:bg-dark-900/80"
+                  >
+                    <h3 className="text-lg font-semibold text-dark-50">{tariff.name}</h3>
+                    {tariff.description && (
+                      <p className="mt-1 text-sm text-dark-400">{tariff.description}</p>
+                    )}
+
+                    <div className="mt-4 flex items-center gap-4 text-xs text-dark-400">
+                      <span className="flex items-center gap-1.5">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={1.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                          />
+                        </svg>
+                        {tariff.traffic_limit_gb === 0
+                          ? t('home.pricing.unlimited')
+                          : `${tariff.traffic_limit_gb} ${t('home.pricing.gb')}`}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={1.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"
+                          />
+                        </svg>
+                        {t('home.pricing.devices', { count: tariff.device_limit })}
+                      </span>
+                    </div>
+
+                    {cheapest != null && (
+                      <div className="mt-6 border-t border-dark-800/50 pt-4">
+                        <div className="text-xs text-dark-500">
+                          {tariff.is_daily ? t('home.pricing.daily') : t('home.pricing.from')}
+                        </div>
+                        <div className="mt-1 flex items-baseline gap-1 font-display text-3xl font-bold text-accent-400">
+                          {formatPrice(cheapest)}
+                          {tariff.is_daily && (
+                            <span className="text-base font-normal text-dark-400">
+                              {t('home.pricing.perDay')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-accent-400">
+                      {t('home.pricing.select')}
+                      <ArrowRightIcon />
+                    </div>
+                  </CabinetLink>
+                );
+              })}
+            </div>
+
+            <div className="mt-10 text-center">
+              <CabinetLink to="/buy/main" className="btn-primary h-11 px-6 text-sm">
+                {t('home.pricing.cta')}
+                <ArrowRightIcon />
+              </CabinetLink>
+            </div>
+          </section>
+        )}
 
         {/* How it works */}
         <section className="mt-24 sm:mt-28">
@@ -329,10 +449,10 @@ export default function Home() {
                 {t('home.cta.subtitle')}
               </p>
               <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <CabinetCta className="btn-primary h-11 px-6 text-sm">
+                <CabinetLink to="/" className="btn-primary h-11 px-6 text-sm">
                   {t('home.cta.primary')}
                   <ArrowRightIcon />
-                </CabinetCta>
+                </CabinetLink>
                 <Link to="/support" className="btn-secondary h-11 px-6 text-sm">
                   {t('home.cta.secondary')}
                 </Link>

@@ -25,6 +25,12 @@ export interface LandingTariff {
   device_limit: number;
   tier_level: number;
   periods: LandingTariffPeriod[];
+  /** When true, this tariff is a daily tariff: `periods` is empty and the UI
+   * renders a dedicated "Суточный" entry priced at `daily_price_kopeks`. */
+  is_daily?: boolean;
+  daily_price_kopeks?: number | null;
+  daily_original_price_kopeks?: number | null;
+  daily_discount_percent?: number | null;
 }
 
 export interface LandingPaymentMethodSubOption {
