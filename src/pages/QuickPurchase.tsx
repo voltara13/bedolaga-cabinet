@@ -56,18 +56,20 @@ function formatPeriodLabel(
   return t('landing.periodLabels.nDays', { count: days });
 }
 
-function buildDailyPeriod(tariff: LandingTariff): LandingTariffPeriod {
-  const price = tariff.daily_price_kopeks ?? 0;
-  const original = tariff.daily_original_price_kopeks ?? null;
-  const discount = tariff.daily_discount_percent ?? null;
+const DAILY_MIN_DAYS = 1;
+const DAILY_MAX_DAYS = 365;
+
+function buildDailyPeriod(tariff: LandingTariff, days: number = 1): LandingTariffPeriod {
+  const perDay = tariff.daily_price_kopeks ?? 0;
+  const originalPerDay = tariff.daily_original_price_kopeks ?? null;
   return {
     days: DAILY_DAYS_SENTINEL,
     label: 'daily',
-    price_kopeks: price,
+    price_kopeks: perDay * days,
     price_label: '',
-    original_price_kopeks: original,
+    original_price_kopeks: originalPerDay != null ? originalPerDay * days : null,
     original_price_label: null,
-    discount_percent: discount,
+    discount_percent: tariff.daily_discount_percent ?? null,
   };
 }
 
@@ -137,6 +139,68 @@ function PeriodTabs({
           {formatPeriodLabel(period.days, t)}
         </button>
       ))}
+    </div>
+  );
+}
+
+function DailyDaysPicker({ days, onChange }: { days: number; onChange: (v: number) => void }) {
+  const { t } = useTranslation();
+  const clamp = (v: number) => Math.max(DAILY_MIN_DAYS, Math.min(DAILY_MAX_DAYS, v));
+  const setFromInput = (raw: string) => {
+    const parsed = parseInt(raw.replace(/\D/g, ''), 10);
+    if (Number.isNaN(parsed)) return;
+    onChange(clamp(parsed));
+  };
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-dark-800/50 bg-dark-900/50 p-4">
+      <span className="text-sm font-medium text-dark-200">
+        {t('landing.daysCount', 'Количество дней')}
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onChange(clamp(days - 1))}
+          disabled={days <= DAILY_MIN_DAYS}
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-dark-800/70 text-lg text-dark-100 transition-colors hover:bg-dark-700/70 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="-"
+        >
+          −
+        </button>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={days}
+          onChange={(e) => setFromInput(e.target.value)}
+          className="h-9 w-16 rounded-lg border border-dark-700/50 bg-dark-800/50 text-center text-sm font-semibold text-dark-50 outline-none focus:border-accent-500/50"
+        />
+        <button
+          type="button"
+          onClick={() => onChange(clamp(days + 1))}
+          disabled={days >= DAILY_MAX_DAYS}
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-dark-800/70 text-lg text-dark-100 transition-colors hover:bg-dark-700/70 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="+"
+        >
+          +
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {[7, 30, 90, 180].map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            onClick={() => onChange(preset)}
+            className={cn(
+              'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+              days === preset
+                ? 'bg-accent-500 text-white'
+                : 'bg-dark-800/50 text-dark-300 hover:bg-dark-700/50',
+            )}
+          >
+            {preset}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -491,6 +555,7 @@ function SummaryCard({
   selectedTariff,
   selectedPeriod,
   currentPrice,
+  dailyDays,
   isSubmitting,
   canSubmit,
   submitError,
@@ -500,12 +565,18 @@ function SummaryCard({
   selectedTariff: LandingTariff | undefined;
   selectedPeriod: LandingTariffPeriod | undefined;
   currentPrice: number;
+  dailyDays: number;
   isSubmitting: boolean;
   canSubmit: boolean;
   submitError: string | null;
   onSubmit: () => void;
 }) {
   const { t } = useTranslation();
+  const periodLabel = selectedPeriod
+    ? selectedPeriod.days === DAILY_DAYS_SENTINEL
+      ? `${formatPeriodLabel(DAILY_DAYS_SENTINEL, t)} · ${formatPeriodLabel(dailyDays, t)}`
+      : formatPeriodLabel(selectedPeriod.days, t)
+    : '';
 
   return (
     <div className="space-y-5">
@@ -524,9 +595,7 @@ function SummaryCard({
             <p className="text-xs font-medium uppercase tracking-wider text-dark-500">
               {t('landing.period', 'Period')}
             </p>
-            <p className="mt-1 text-sm text-dark-200">
-              {formatPeriodLabel(selectedPeriod.days, t)}
-            </p>
+            <p className="mt-1 text-sm text-dark-200">{periodLabel}</p>
           </div>
         )}
         <div className="border-t border-dark-800/50 pt-4">
@@ -763,6 +832,8 @@ export default function QuickPurchase() {
   // Selection state
   const [selectedTariffId, setSelectedTariffId] = useState<number | null>(null);
   const [selectedPeriodDays, setSelectedPeriodDays] = useState<number | null>(null);
+  // Number of days for daily tariff purchase (only used when "Суточный" selected).
+  const [dailyDays, setDailyDays] = useState<number>(30);
   const [contactValue, setContactValue] = useState('');
   const [isGift, setIsGift] = useState(false);
   const [giftRecipient, setGiftRecipient] = useState('');
@@ -909,10 +980,10 @@ export default function QuickPurchase() {
   const selectedPeriod = useMemo(() => {
     if (!selectedTariff) return undefined;
     if (selectedTariff.is_daily) {
-      return buildDailyPeriod(selectedTariff);
+      return buildDailyPeriod(selectedTariff, dailyDays);
     }
     return selectedTariff.periods.find((p) => p.days === selectedPeriodDays);
-  }, [selectedTariff, selectedPeriodDays]);
+  }, [selectedTariff, selectedPeriodDays, dailyDays]);
 
   const currentPrice = selectedPeriod?.price_kopeks ?? 0;
 
@@ -956,10 +1027,11 @@ export default function QuickPurchase() {
       paymentMethod = `${paymentMethod}_${selectedSubOption}`;
     }
 
-    // Daily tariff is billed for 1 day up front — auto-renews from balance.
+    // Daily tariff: user chooses how many days to prepay; subsequent days
+    // after expiry are auto-charged from balance by the daily cron.
     const periodDaysToSend =
       selectedTariff?.is_daily || selectedPeriodDays === DAILY_DAYS_SENTINEL
-        ? 1
+        ? dailyDays
         : selectedPeriodDays!;
 
     const data: PurchaseRequest = {
@@ -1045,6 +1117,9 @@ export default function QuickPurchase() {
                   selectedDays={selectedPeriodDays ?? 0}
                   onSelect={setSelectedPeriodDays}
                 />
+                {selectedPeriodDays === DAILY_DAYS_SENTINEL && (
+                  <DailyDaysPicker days={dailyDays} onChange={setDailyDays} />
+                )}
               </div>
             )}
 
@@ -1143,6 +1218,7 @@ export default function QuickPurchase() {
               selectedTariff={selectedTariff}
               selectedPeriod={selectedPeriod}
               currentPrice={currentPrice}
+              dailyDays={dailyDays}
               isSubmitting={isSubmitting}
               canSubmit={canSubmit}
               submitError={submitError}
