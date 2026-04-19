@@ -16,6 +16,9 @@ services:
         VITE_LEGAL_INFO: ${VITE_LEGAL_INFO:-}
         VITE_CABINET_HOST: ${VITE_CABINET_HOST:-}
         VITE_PUBLIC_HOST: ${VITE_PUBLIC_HOST:-}
+        VITE_SEO_TITLE: ${VITE_SEO_TITLE:-VPN Cabinet}
+        VITE_SEO_DESCRIPTION: ${VITE_SEO_DESCRIPTION:-}
+        VITE_SEO_IMAGE: ${VITE_SEO_IMAGE:-}
     container_name: cabinet_frontend
     restart: unless-stopped
     env_file:
