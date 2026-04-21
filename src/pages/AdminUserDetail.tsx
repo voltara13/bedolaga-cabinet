@@ -370,6 +370,8 @@ export default function AdminUserDetail() {
 
   // Traffic packages
   const [selectedTrafficGb, setSelectedTrafficGb] = useState<string>('');
+  const [trafficLimitGbInput, setTrafficLimitGbInput] = useState<number | ''>('');
+  const [trafficUsedGbInput, setTrafficUsedGbInput] = useState<number | ''>('');
 
   // Devices
   const [devices, setDevices] = useState<
@@ -818,6 +820,28 @@ export default function AdminUserDetail() {
     }
   };
 
+  const handleSetTraffic = async () => {
+    if (!userId || !selectedSub) return;
+    setActionLoading(true);
+    try {
+      await adminUsersApi.updateSubscription(userId, {
+        action: 'set_traffic',
+        ...(activeSubscriptionId ? { subscription_id: activeSubscriptionId } : {}),
+        traffic_limit_gb: toNumber(trafficLimitGbInput, selectedSub.traffic_limit_gb),
+        traffic_used_gb: toNumber(trafficUsedGbInput, selectedSub.traffic_used_gb),
+      });
+      notify.success(
+        t('admin.users.detail.subscription.trafficUpdated', 'Трафик обновлён'),
+        t('common.success'),
+      );
+      await loadUser();
+    } catch {
+      notify.error(t('admin.users.userActions.error'), t('common.error'));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Multi-subscription: pick active subscription or first from list
   const userSubscriptions = useMemo(() => user?.subscriptions ?? [], [user?.subscriptions]);
   const selectedSub =
@@ -831,6 +855,17 @@ export default function AdminUserDetail() {
       hasAutoSelectedSub.current = true;
     }
   }, [user, userSubscriptions]);
+
+  useEffect(() => {
+    if (!selectedSub) {
+      setTrafficLimitGbInput('');
+      setTrafficUsedGbInput('');
+      return;
+    }
+
+    setTrafficLimitGbInput(selectedSub.traffic_limit_gb);
+    setTrafficUsedGbInput(selectedSub.traffic_used_gb);
+  }, [selectedSub]);
 
   const currentTariff = tariffs.find((t) => t.id === selectedSub?.tariff_id) || null;
   const getSubscriptionDisplayName = useCallback(
@@ -1877,6 +1912,67 @@ export default function AdminUserDetail() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {hasPermission('users:subscription') && (
+                  <div className="rounded-xl bg-dark-800/50 p-4">
+                    <div className="mb-3 text-sm font-medium text-dark-200">
+                      {t(
+                        'admin.users.detail.subscription.trafficManagement',
+                        'Управление трафиком',
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <div className="mb-1 text-xs text-dark-500">
+                          {t('admin.users.detail.subscription.trafficLimitLabel', 'Лимит трафика')}
+                        </div>
+                        <input
+                          type="number"
+                          value={trafficLimitGbInput}
+                          onChange={createNumberInputHandler(setTrafficLimitGbInput, 0)}
+                          className="input"
+                          min={0}
+                          step={1}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <div className="mb-1 text-xs text-dark-500">
+                          {t(
+                            'admin.users.detail.subscription.trafficUsedLabel',
+                            'Использовано трафика',
+                          )}
+                        </div>
+                        <input
+                          type="number"
+                          value={trafficUsedGbInput}
+                          onChange={createNumberInputHandler(setTrafficUsedGbInput, 0)}
+                          className="input"
+                          min={0}
+                          step={0.01}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-dark-500">
+                      {t(
+                        'admin.users.detail.subscription.trafficManagementNote',
+                        'Можно вручную задать общий лимит и уже использованный трафик для выбранной подписки.',
+                      )}
+                    </div>
+                    <button
+                      onClick={handleSetTraffic}
+                      disabled={
+                        actionLoading || trafficLimitGbInput === '' || trafficUsedGbInput === ''
+                      }
+                      className="mt-3 w-full rounded-lg bg-accent-500 px-4 py-2 text-sm text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
+                    >
+                      {actionLoading
+                        ? t('admin.users.actions.applying')
+                        : t('admin.users.detail.subscription.saveTraffic', 'Сохранить трафик')}
+                    </button>
                   </div>
                 )}
 
