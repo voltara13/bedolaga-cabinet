@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navigate, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -5,8 +6,9 @@ import { subscriptionApi } from '../api/subscription';
 import { useTheme } from '../hooks/useTheme';
 import { getGlassColors } from '../utils/glassTheme';
 import SubscriptionListCard from '../components/subscription/SubscriptionListCard';
+import RestoreXUiDialog from '../components/subscription/RestoreXUiDialog';
 
-function EmptyState({ onBuy }: { onBuy: () => void }) {
+function EmptyState({ onBuy, onRestore }: { onBuy: () => void; onRestore: () => void }) {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const g = getGlassColors(isDark);
@@ -40,12 +42,25 @@ function EmptyState({ onBuy }: { onBuy: () => void }) {
       <p className="mb-6 text-sm" style={{ color: g.textSecondary }}>
         {t('subscriptions.emptyDesc', 'У вас пока нет активных подписок')}
       </p>
-      <button
-        onClick={onBuy}
-        className="rounded-xl bg-accent-500 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-600"
-      >
-        {t('subscriptions.buy', 'Купить подписку')}
-      </button>
+      <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+        <button
+          onClick={onBuy}
+          className="rounded-xl bg-accent-500 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+        >
+          {t('subscriptions.buy', 'Купить подписку')}
+        </button>
+        <button
+          onClick={onRestore}
+          className="rounded-xl px-6 py-3 text-sm font-medium transition-colors"
+          style={{
+            background: g.innerBg,
+            color: g.textSecondary,
+            border: `1px solid ${g.cardBorder}`,
+          }}
+        >
+          {t('xUiMigration.restoreButton', 'Восстановить старую подписку')}
+        </button>
+      </div>
     </div>
   );
 }
@@ -55,6 +70,7 @@ export default function Subscriptions() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const g = getGlassColors(isDark);
+  const [restoreOpen, setRestoreOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['subscriptions-list'],
@@ -74,31 +90,60 @@ export default function Subscriptions() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold" style={{ color: g.text }}>
           {t('subscriptions.title', 'Мои подписки')}
         </h1>
-        {!isLoading && subscriptions.length > 0 && (
-          <button
-            onClick={() => navigate('/subscription/purchase')}
-            className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
-            style={{
-              background: 'rgba(var(--color-accent-400), 0.1)',
-              color: 'rgb(var(--color-accent-400))',
-              border: '1px solid rgba(var(--color-accent-400), 0.2)',
-            }}
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
+        {!isLoading && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setRestoreOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+              style={{
+                background: g.innerBg,
+                color: g.textSecondary,
+                border: `1px solid ${g.cardBorder}`,
+              }}
+              title={t('xUiMigration.restoreHint', 'Перенос подписки из 3x-ui по VLESS-ссылке')}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            {t('subscriptions.buyAnother', 'Новый тариф')}
-          </button>
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
+                />
+              </svg>
+              {t('xUiMigration.restoreButton', 'Восстановить старую подписку')}
+            </button>
+            {subscriptions.length > 0 && (
+              <button
+                onClick={() => navigate('/subscription/purchase')}
+                className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+                style={{
+                  background: 'rgba(var(--color-accent-400), 0.1)',
+                  color: 'rgb(var(--color-accent-400))',
+                  border: '1px solid rgba(var(--color-accent-400), 0.2)',
+                }}
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                {t('subscriptions.buyAnother', 'Новый тариф')}
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -117,7 +162,10 @@ export default function Subscriptions() {
 
       {/* Empty state */}
       {!isLoading && subscriptions.length === 0 && (
-        <EmptyState onBuy={() => navigate('/subscription/purchase')} />
+        <EmptyState
+          onBuy={() => navigate('/subscription/purchase')}
+          onRestore={() => setRestoreOpen(true)}
+        />
       )}
 
       {/* Subscription grid */}
@@ -132,6 +180,12 @@ export default function Subscriptions() {
           ))}
         </div>
       )}
+
+      <RestoreXUiDialog
+        open={restoreOpen}
+        onOpenChange={setRestoreOpen}
+        onSuccess={(result) => navigate(`/subscriptions/${result.subscription_id}`)}
+      />
     </div>
   );
 }

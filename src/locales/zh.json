@@ -1,4 +1,22 @@
 {
+  "xUiMigration": {
+    "restoreButton": "恢复旧订阅",
+    "restoreHint": "使用 VLESS 链接或客户端 UUID 从 3x-ui 迁移订阅",
+    "title": "恢复旧订阅",
+    "description": "粘贴来自 3x-ui 的 VLESS 链接或客户端 UUID，将订阅迁移到新系统。",
+    "inputLabel": "链接或 UUID",
+    "inputPlaceholder": "vless://... 或客户端 UUID",
+    "submit": "恢复",
+    "successTitle": "订阅已恢复",
+    "successMessage": "套餐「{{tariff}}」· 剩余 {{days}} 天",
+    "errors": {
+      "empty": "请输入链接或 UUID",
+      "invalid_url": "链接无效。请检查格式后重试。",
+      "not_found": "在 3x-ui 中未找到该链接对应的客户端。",
+      "already_migrated": "此订阅已迁移到新系统。",
+      "tariff_missing": "未配置匹配的套餐，请联系客服。"
+    }
+  },
   "common": {
     "loading": "加载中...",
     "error": "错误",

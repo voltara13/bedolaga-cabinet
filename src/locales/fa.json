@@ -1,4 +1,22 @@
 {
+  "xUiMigration": {
+    "restoreButton": "بازیابی اشتراک قدیمی",
+    "restoreHint": "انتقال اشتراک از 3x-ui با لینک VLESS یا UUID کلاینت",
+    "title": "بازیابی اشتراک قدیمی",
+    "description": "لینک VLESS یا UUID کلاینت از 3x-ui را وارد کنید تا اشتراک شما به سیستم جدید منتقل شود.",
+    "inputLabel": "لینک یا UUID",
+    "inputPlaceholder": "vless://... یا UUID کلاینت",
+    "submit": "بازیابی",
+    "successTitle": "اشتراک بازیابی شد",
+    "successMessage": "طرح «{{tariff}}» · {{days}} روز باقی مانده",
+    "errors": {
+      "empty": "لینک یا UUID را وارد کنید",
+      "invalid_url": "لینک نامعتبر است. قالب را بررسی کنید و دوباره امتحان کنید.",
+      "not_found": "کلاینتی با این لینک در 3x-ui یافت نشد.",
+      "already_migrated": "این اشتراک قبلاً منتقل شده است.",
+      "tariff_missing": "طرح مناسب تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید."
+    }
+  },
   "common": {
     "loading": "در حال بارگذاری...",
     "all": "همه",
