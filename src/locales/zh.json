@@ -1,6 +1,7 @@
 {
   "xUiMigration": {
     "restoreButton": "恢复旧订阅",
+    "restoreButtonShort": "恢复",
     "restoreHint": "使用 VLESS 链接或客户端 UUID 从 3x-ui 迁移订阅",
     "title": "恢复旧订阅",
     "description": "粘贴来自 3x-ui 的 VLESS 链接或客户端 UUID，将订阅迁移到新系统。",

@@ -98,16 +98,19 @@ export default function Subscriptions() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setRestoreOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors sm:px-4"
               style={{
                 background: g.innerBg,
                 color: g.textSecondary,
                 border: `1px solid ${g.cardBorder}`,
               }}
-              title={t('xUiMigration.restoreHint', 'Перенос подписки из 3x-ui по VLESS-ссылке')}
+              title={t(
+                'xUiMigration.restoreHint',
+                'Перенос подписки из старой системы по VLESS-ссылке или UUID клиента',
+              )}
             >
               <svg
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -119,12 +122,17 @@ export default function Subscriptions() {
                   d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
                 />
               </svg>
-              {t('xUiMigration.restoreButton', 'Восстановить старую подписку')}
+              <span className="sm:hidden">
+                {t('xUiMigration.restoreButtonShort', 'Восстановить')}
+              </span>
+              <span className="hidden sm:inline">
+                {t('xUiMigration.restoreButton', 'Восстановить старую подписку')}
+              </span>
             </button>
             {subscriptions.length > 0 && (
               <button
                 onClick={() => navigate('/subscription/purchase')}
-                className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+                className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors sm:px-4"
                 style={{
                   background: 'rgba(var(--color-accent-400), 0.1)',
                   color: 'rgb(var(--color-accent-400))',
@@ -132,7 +140,7 @@ export default function Subscriptions() {
                 }}
               >
                 <svg
-                  className="h-4 w-4"
+                  className="h-4 w-4 shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

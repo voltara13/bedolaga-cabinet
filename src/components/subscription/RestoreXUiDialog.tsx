@@ -122,12 +122,12 @@ export default function RestoreXUiDialog({ open, onOpenChange, onSuccess }: Rest
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent showCloseButton={!migrateMutation.isPending}>
-        <DialogHeader>
+        <DialogHeader className="pr-8">
           <DialogTitle>{t('xUiMigration.title', 'Восстановление старой подписки')}</DialogTitle>
           <DialogDescription>
             {t(
               'xUiMigration.description',
-              'Вставьте VLESS-ссылку или UUID клиента из 3x-ui, чтобы перенести подписку в новую систему.',
+              'Вставьте ссылку старой подписки, чтобы перенести подписку в новую систему.',
             )}
           </DialogDescription>
         </DialogHeader>
@@ -166,6 +166,7 @@ export default function RestoreXUiDialog({ open, onOpenChange, onSuccess }: Rest
               variant="ghost"
               onClick={() => handleOpenChange(false)}
               disabled={migrateMutation.isPending}
+              className="hidden sm:inline-flex"
             >
               {t('common.cancel', 'Отмена')}
             </Button>
@@ -181,7 +182,7 @@ export default function RestoreXUiDialog({ open, onOpenChange, onSuccess }: Rest
 
 const DEFAULT_ERROR_MESSAGES: Record<XUiMigrationErrorCode, string> = {
   invalid_url: 'Некорректная ссылка. Проверьте формат и попробуйте ещё раз.',
-  not_found: 'Клиент с такой ссылкой не найден в 3x-ui.',
+  not_found: 'Клиент с такой ссылкой не найден. Обратитесь в поддержку.',
   already_migrated: 'Эта подписка уже перенесена в новую систему.',
   tariff_missing: 'Подходящий тариф не настроен. Обратитесь в поддержку.',
 };

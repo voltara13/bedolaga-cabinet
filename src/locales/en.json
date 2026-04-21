@@ -1,9 +1,10 @@
 {
   "xUiMigration": {
     "restoreButton": "Restore old subscription",
-    "restoreHint": "Migrate a 3x-ui subscription using a VLESS link or client UUID",
+    "restoreButtonShort": "Restore",
+    "restoreHint": "Migrate old subscription using a link",
     "title": "Restore old subscription",
-    "description": "Paste a VLESS link or client UUID from 3x-ui to migrate your subscription to the new system.",
+    "description": "Paste a subscription link or client UUID to migrate your subscription to the new system.",
     "inputLabel": "Link or UUID",
     "inputPlaceholder": "vless://... or client UUID",
     "submit": "Restore",
@@ -12,7 +13,7 @@
     "errors": {
       "empty": "Enter a link or UUID",
       "invalid_url": "Invalid link. Check the format and try again.",
-      "not_found": "No client with this link was found in 3x-ui.",
+      "not_found": "No client with this link was found.",
       "already_migrated": "This subscription has already been migrated.",
       "tariff_missing": "No matching tariff is configured. Please contact support."
     }

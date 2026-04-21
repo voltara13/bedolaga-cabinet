@@ -1,6 +1,7 @@
 {
   "xUiMigration": {
     "restoreButton": "بازیابی اشتراک قدیمی",
+    "restoreButtonShort": "بازیابی",
     "restoreHint": "انتقال اشتراک از 3x-ui با لینک VLESS یا UUID کلاینت",
     "title": "بازیابی اشتراک قدیمی",
     "description": "لینک VLESS یا UUID کلاینت از 3x-ui را وارد کنید تا اشتراک شما به سیستم جدید منتقل شود.",
