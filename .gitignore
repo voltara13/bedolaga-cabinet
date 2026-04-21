@@ -1,8 +1,9 @@
 # Dependencies
 node_modules/
 
-# Claude local settings
+# Claude and codex local settings
 .claude/
+.codex
 
 # Build output
 dist/

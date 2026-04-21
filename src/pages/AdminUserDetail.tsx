@@ -1684,20 +1684,11 @@ export default function AdminUserDetail() {
                         <option value="">
                           {t('admin.users.detail.subscription.selectTariff')}
                         </option>
-                        {tariffs
-                          .filter((tariffItem) => {
-                            const purchasedIds = new Set(
-                              userSubscriptions
-                                .filter((s) => s.is_active || s.status === 'trial')
-                                .map((s) => s.tariff_id),
-                            );
-                            return !purchasedIds.has(tariffItem.id);
-                          })
-                          .map((tariffItem) => (
-                            <option key={tariffItem.id} value={tariffItem.id}>
-                              {tariffItem.name}
-                            </option>
-                          ))}
+                        {tariffs.map((tariffItem) => (
+                          <option key={tariffItem.id} value={tariffItem.id}>
+                            {tariffItem.name}
+                          </option>
+                        ))}
                       </select>
                       <input
                         type="number"
@@ -2035,24 +2026,11 @@ export default function AdminUserDetail() {
                     className="input"
                   >
                     <option value="">{t('admin.users.detail.subscription.selectTariff')}</option>
-                    {tariffs
-                      .filter((tariffItem) => {
-                        // In multi-tariff: hide tariffs user already has
-                        if (userSubscriptions.length > 0) {
-                          const purchasedIds = new Set(
-                            userSubscriptions
-                              .filter((s) => s.is_active || s.status === 'trial')
-                              .map((s) => s.tariff_id),
-                          );
-                          return !purchasedIds.has(tariffItem.id);
-                        }
-                        return true;
-                      })
-                      .map((tariffItem) => (
-                        <option key={tariffItem.id} value={tariffItem.id}>
-                          {tariffItem.name}
-                        </option>
-                      ))}
+                    {tariffs.map((tariffItem) => (
+                      <option key={tariffItem.id} value={tariffItem.id}>
+                        {tariffItem.name}
+                      </option>
+                    ))}
                   </select>
                   <input
                     type="number"
