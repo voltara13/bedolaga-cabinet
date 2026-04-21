@@ -833,6 +833,11 @@ export default function AdminUserDetail() {
   }, [user, userSubscriptions]);
 
   const currentTariff = tariffs.find((t) => t.id === selectedSub?.tariff_id) || null;
+  const getSubscriptionDisplayName = useCallback(
+    (sub: { name?: string | null; tariff_name: string | null; id: number }) =>
+      sub.name || sub.tariff_name || `#${sub.id}`,
+    [],
+  );
 
   const handleChangePromoGroup = async (groupId: number | null) => {
     if (!userId) return;
@@ -1632,11 +1637,18 @@ export default function AdminUserDetail() {
                       className="w-full rounded-xl border border-dark-700/50 bg-dark-800/50 p-4 text-left transition-all hover:border-dark-600"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-dark-100">
-                            {sub.tariff_name || `#${sub.id}`}
-                          </span>
-                          <StatusBadge status={sub.status} />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-semibold text-dark-100">
+                              {getSubscriptionDisplayName(sub)}
+                            </span>
+                            <StatusBadge status={sub.status} />
+                          </div>
+                          {sub.name && sub.tariff_name && (
+                            <div className="mt-0.5 truncate text-xs text-dark-500">
+                              {sub.tariff_name}
+                            </div>
+                          )}
                         </div>
                         <svg
                           className="h-4 w-4 text-dark-500"
@@ -1752,10 +1764,12 @@ export default function AdminUserDetail() {
                       <div className="text-xs text-dark-500">
                         {t('admin.users.detail.subscription.tariff')}
                       </div>
-                      <div className="text-dark-100">
-                        {selectedSub.tariff_name ||
-                          t('admin.users.detail.subscription.notSpecified')}
-                      </div>
+                      <div className="text-dark-100">{getSubscriptionDisplayName(selectedSub)}</div>
+                      {selectedSub.name && selectedSub.tariff_name && (
+                        <div className="mt-0.5 text-xs text-dark-500">
+                          {selectedSub.tariff_name}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <div className="text-xs text-dark-500">
@@ -2556,7 +2570,7 @@ export default function AdminUserDetail() {
                 >
                   {userSubscriptions.map((sub) => (
                     <option key={sub.id} value={sub.id}>
-                      {sub.tariff_name || `#${sub.id}`} — {sub.status}
+                      {getSubscriptionDisplayName(sub)} — {sub.status}
                     </option>
                   ))}
                 </select>

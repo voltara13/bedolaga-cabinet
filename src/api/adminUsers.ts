@@ -11,6 +11,7 @@ export interface TrafficPurchaseInfo {
 
 export interface UserSubscriptionInfo {
   id: number;
+  name?: string | null;
   status: string;
   is_trial: boolean;
   start_date: string | null;
