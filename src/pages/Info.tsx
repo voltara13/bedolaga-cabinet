@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, type ComponentType } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import DOMPurify from 'dompurify';
 import { infoApi, FaqPage, PersonalDataConsentResponse } from '../api/info';
+import { infoPagesApi } from '../api/infoPages';
 import { promoApi, LoyaltyTierInfo } from '../api/promo';
+import type { FaqItem, ReplacesTab } from '../api/infoPages';
 
 const InfoIcon = () => (
   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -69,6 +71,17 @@ const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
 );
 
 type TabType = 'faq' | 'rules' | 'privacy' | 'offer' | 'personal-data' | 'loyalty';
+const DEFAULT_TAB: TabType = 'rules';
+const BUILTIN_TABS = new Set<string>([
+  'faq',
+  'rules',
+  'privacy',
+  'offer',
+  'personal-data',
+  'loyalty',
+]);
+const REPLACEABLE_TABS = new Set<string>(['faq', 'rules', 'privacy', 'offer']);
+type InfoTab = { id: string; label: string; icon: ComponentType; emoji?: string };
 
 // Sanitize HTML content to prevent XSS
 const sanitizeHtml = (html: string): string => {
@@ -104,6 +117,136 @@ const sanitizeHtml = (html: string): string => {
     ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'start'],
     ALLOW_DATA_ATTR: false,
   });
+};
+
+// Rich sanitizer for custom InfoPage content (TipTap editor output with media)
+const ALLOWED_IFRAME_HOSTS = new Set([
+  'www.youtube.com',
+  'youtube.com',
+  'player.vimeo.com',
+  'www.youtube-nocookie.com',
+]);
+
+const infoPagePurify = DOMPurify(window);
+
+infoPagePurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'IFRAME') {
+    const src = node.getAttribute('src') ?? '';
+    try {
+      const url = new URL(src);
+      if (url.protocol !== 'https:' || !ALLOWED_IFRAME_HOSTS.has(url.hostname)) {
+        node.remove();
+        return;
+      }
+    } catch {
+      node.remove();
+      return;
+    }
+    node.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+    node.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+  }
+  if (node.tagName === 'VIDEO') {
+    const src = node.getAttribute('src') ?? '';
+    try {
+      const url = new URL(src);
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+        node.remove();
+        return;
+      }
+    } catch {
+      node.remove();
+      return;
+    }
+    node.setAttribute('controls', '');
+    node.setAttribute('preload', 'metadata');
+  }
+  if (node.tagName === 'A') {
+    node.setAttribute('target', '_blank');
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+  if (node.hasAttribute('style')) {
+    const style = node.getAttribute('style') ?? '';
+    const match = style.match(/text-align\s*:\s*(left|center|right|justify)/i);
+    if (match) {
+      node.setAttribute('style', `text-align: ${match[1]}`);
+    } else {
+      node.removeAttribute('style');
+    }
+  }
+});
+
+const RICH_SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'p',
+    'div',
+    'br',
+    'hr',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'blockquote',
+    'pre',
+    'code',
+    'ul',
+    'ol',
+    'li',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'a',
+    'strong',
+    'b',
+    'em',
+    'i',
+    'u',
+    's',
+    'del',
+    'ins',
+    'span',
+    'mark',
+    'sub',
+    'sup',
+    'small',
+    'img',
+    'video',
+    'iframe',
+    'figure',
+    'figcaption',
+  ],
+  ALLOWED_ATTR: [
+    'href',
+    'target',
+    'rel',
+    'src',
+    'alt',
+    'title',
+    'width',
+    'height',
+    'loading',
+    'class',
+    'start',
+    'reversed',
+    'type',
+    'controls',
+    'preload',
+    'frameborder',
+    'allowfullscreen',
+    'allow',
+    'sandbox',
+    'style',
+  ],
+  ALLOW_DATA_ATTR: false,
+  ADD_ATTR: ['target'],
+};
+
+const sanitizeRichHtml = (html: string): string => {
+  return infoPagePurify.sanitize(html, RICH_SANITIZE_CONFIG);
 };
 
 // Convert content to formatted HTML (handles Telegram HTML + plain text)
@@ -155,20 +298,171 @@ const formatContent = (content: string): string => {
   return sanitizeHtml(result);
 };
 
-export default function Info() {
-  const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
-  const tabParam = searchParams.get('tab') as TabType | null;
-  const validTabs: TabType[] = ['faq', 'rules', 'privacy', 'offer', 'personal-data', 'loyalty'];
-  const [activeTab, setActiveTab] = useState<TabType>(
-    tabParam && validTabs.includes(tabParam) ? tabParam : 'rules',
+// --- FAQ Accordion for tab replacements ---
+
+function ReplacementFaqItem({
+  item,
+  isOpen,
+  onToggle,
+}: {
+  item: FaqItem;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setHeight(isOpen ? contentRef.current.scrollHeight : 0);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !contentRef.current) return;
+    const observer = new ResizeObserver(() => {
+      if (contentRef.current) setHeight(contentRef.current.scrollHeight);
+    });
+    observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, [isOpen]);
+
+  const sanitizedAnswer = useMemo(() => sanitizeRichHtml(item.a), [item.a]);
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-dark-700 bg-dark-800/50 transition-all hover:border-dark-600">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex min-h-[52px] w-full items-center justify-between gap-3 px-5 py-4 text-left"
+        aria-expanded={isOpen}
+      >
+        <span className="text-sm font-medium text-dark-100 sm:text-base">{item.q}</span>
+        <ChevronIcon expanded={isOpen} />
+      </button>
+      <div
+        style={{ height }}
+        className="overflow-hidden transition-[height] duration-300 ease-in-out"
+      >
+        <div ref={contentRef} className="border-t border-dark-700/50 px-5 pb-4 pt-3">
+          <div
+            className="prose prose-sm max-w-none text-dark-300"
+            dangerouslySetInnerHTML={{ __html: sanitizedAnswer }}
+          />
+        </div>
+      </div>
+    </div>
   );
+}
+
+function ReplacementFaqView({ items }: { items: FaqItem[] }) {
+  const [openKey, setOpenKey] = useState<string | null>(null);
+
+  const handleToggle = useCallback((key: string) => {
+    setOpenKey((prev) => (prev === key ? null : key));
+  }, []);
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, index) => {
+        const key = `${index}-${item.q.slice(0, 50)}`;
+        return (
+          <ReplacementFaqItem
+            key={key}
+            item={item}
+            isOpen={openKey === key}
+            onToggle={() => handleToggle(key)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+export default function Info() {
+  const { t, i18n } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<string>(tabParam || DEFAULT_TAB);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const locale = i18n.language.split('-')[0];
+
+  useEffect(() => {
+    setActiveTab(tabParam || DEFAULT_TAB);
+  }, [tabParam]);
+
+  // Fetch tab replacements
+  const { data: tabReplacements, isError: replacementsError } = useQuery({
+    queryKey: ['info-pages', 'tab-replacements'],
+    queryFn: infoPagesApi.getTabReplacements,
+    staleTime: 60_000,
+  });
+
+  // Fetch custom InfoPages (active pages without replaces_tab — shown as extra tabs)
+  const { data: customPages } = useQuery({
+    queryKey: ['info-pages', 'list'],
+    queryFn: () => infoPagesApi.getPages(),
+    staleTime: 60_000,
+  });
+
+  // Filter to only pages that don't replace a built-in tab and don't collide with built-in IDs
+  const extraPages = useMemo(
+    () => (customPages ?? []).filter((p) => !p.replaces_tab && !BUILTIN_TABS.has(p.slug)),
+    [customPages],
+  );
+
+  // Determine if we're on a built-in tab or a custom page tab
+  const isCustomTab = !BUILTIN_TABS.has(activeTab);
+  const customTabSlug = isCustomTab ? activeTab : null;
+
+  // Check if current built-in tab has a replacement
+  const currentTabSlug =
+    !isCustomTab && REPLACEABLE_TABS.has(activeTab)
+      ? (tabReplacements?.[activeTab as ReplacesTab] ?? null)
+      : null;
+
+  // Slug to fetch: either a custom page tab or a tab replacement
+  const pageSlugToFetch = customTabSlug ?? currentTabSlug;
+
+  // Wait for tab replacements before firing built-in queries (also proceed on error — graceful degradation)
+  const replacementsLoaded = tabReplacements !== undefined || replacementsError;
+
+  // Fetch the InfoPage when needed (replacement or custom tab)
+  const { data: infoPage, isLoading: infoPageLoading } = useQuery({
+    queryKey: ['info-pages', 'page', pageSlugToFetch],
+    queryFn: () => {
+      if (!pageSlugToFetch) throw new Error('No slug');
+      return infoPagesApi.getPageBySlug(pageSlugToFetch);
+    },
+    enabled: !!pageSlugToFetch,
+    staleTime: 60_000,
+  });
+
+  // Parse FAQ items from InfoPage content
+  const infoPageFaqItems = useMemo((): FaqItem[] => {
+    if (!infoPage || infoPage.page_type !== 'faq') return [];
+    const raw =
+      infoPage.content[locale] || infoPage.content['ru'] || infoPage.content['en'] || '[]';
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [infoPage, locale]);
+
+  // Sanitize regular InfoPage HTML content
+  const infoPageHtml = useMemo(() => {
+    if (!infoPage || infoPage.page_type === 'faq') return '';
+    const rawContent =
+      infoPage.content[locale] || infoPage.content['ru'] || infoPage.content['en'] || '';
+    return sanitizeRichHtml(rawContent);
+  }, [infoPage, locale]);
 
   const { data: faqPages, isLoading: faqLoading } = useQuery({
     queryKey: ['faq-pages'],
     queryFn: infoApi.getFaqPages,
-    enabled: activeTab === 'faq',
+    enabled: activeTab === 'faq' && !currentTabSlug && replacementsLoaded,
     staleTime: 0,
     refetchOnMount: 'always',
   });
@@ -176,7 +470,7 @@ export default function Info() {
   const { data: rules, isLoading: rulesLoading } = useQuery({
     queryKey: ['rules'],
     queryFn: infoApi.getRules,
-    enabled: activeTab === 'rules',
+    enabled: activeTab === 'rules' && !currentTabSlug && replacementsLoaded,
     staleTime: 0,
     refetchOnMount: 'always',
   });
@@ -184,7 +478,7 @@ export default function Info() {
   const { data: privacy, isLoading: privacyLoading } = useQuery({
     queryKey: ['privacy-policy'],
     queryFn: infoApi.getPrivacyPolicy,
-    enabled: activeTab === 'privacy',
+    enabled: activeTab === 'privacy' && !currentTabSlug && replacementsLoaded,
     staleTime: 0,
     refetchOnMount: 'always',
   });
@@ -192,7 +486,7 @@ export default function Info() {
   const { data: offer, isLoading: offerLoading } = useQuery({
     queryKey: ['public-offer'],
     queryFn: infoApi.getPublicOffer,
-    enabled: activeTab === 'offer',
+    enabled: activeTab === 'offer' && !currentTabSlug && replacementsLoaded,
     staleTime: 0,
     refetchOnMount: 'always',
   });
@@ -214,20 +508,75 @@ export default function Info() {
     refetchOnMount: 'always',
   });
 
-  const tabs = [
-    // { id: 'faq' as TabType, label: t('info.faq'), icon: QuestionIcon },
-    { id: 'rules' as TabType, label: t('info.rules'), icon: DocumentIcon },
-    { id: 'privacy' as TabType, label: t('info.privacy'), icon: ShieldIcon },
-    { id: 'offer' as TabType, label: t('info.offer'), icon: DocumentIcon },
-    { id: 'personal-data' as TabType, label: t('info.personalData'), icon: ShieldIcon },
-    // { id: 'loyalty' as TabType, label: t('info.loyalty'), icon: StarIcon },
+  const builtinTabs: InfoTab[] = [
+    { id: 'rules', label: t('info.rules'), icon: DocumentIcon },
+    { id: 'privacy', label: t('info.privacy'), icon: ShieldIcon },
+    { id: 'offer', label: t('info.offer'), icon: DocumentIcon },
+    { id: 'personal-data', label: t('info.personalData'), icon: ShieldIcon },
   ];
 
-  const toggleFaq = (id: number) => {
-    setExpandedFaq(expandedFaq === id ? null : id);
+  const customTabs = extraPages.map((p) => {
+    const label = p.title[locale] || p.title['ru'] || p.title['en'] || p.slug;
+    return { id: p.slug, label, icon: DocumentIcon, emoji: p.icon ?? undefined };
+  });
+
+  const tabs = [...builtinTabs, ...customTabs];
+
+  const toggleFaq = useCallback((id: number) => {
+    setExpandedFaq((prev) => (prev === id ? null : id));
+  }, []);
+
+  const renderInfoPageContent = () => {
+    if (infoPageLoading) {
+      return (
+        <div className="flex justify-center py-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" />
+        </div>
+      );
+    }
+
+    if (!infoPage) {
+      return <div className="py-8 text-center text-dark-400">{t('info.noContent')}</div>;
+    }
+
+    if (infoPage.page_type === 'faq') {
+      if (infoPageFaqItems.length === 0) {
+        return <div className="py-8 text-center text-dark-400">{t('info.noFaq')}</div>;
+      }
+      return <ReplacementFaqView items={infoPageFaqItems} />;
+    }
+
+    if (!infoPageHtml) {
+      return <div className="py-8 text-center text-dark-400">{t('info.noContent')}</div>;
+    }
+
+    return (
+      <div className="bento-card prose prose-invert max-w-none">
+        <div className="overflow-x-auto" dangerouslySetInnerHTML={{ __html: infoPageHtml }} />
+      </div>
+    );
   };
 
   const renderContent = () => {
+    // Custom page tab — always render InfoPage content
+    if (isCustomTab) {
+      return renderInfoPageContent();
+    }
+
+    // Show spinner while tab replacements are loading (prevents flash of wrong content)
+    if (!replacementsLoaded) {
+      return (
+        <div className="flex justify-center py-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" />
+        </div>
+      );
+    }
+
+    // Built-in tab replaced by an InfoPage
+    if (currentTabSlug) {
+      return renderInfoPageContent();
+    }
+
     if (activeTab === 'faq') {
       if (faqLoading) {
         return (
@@ -247,7 +596,7 @@ export default function Info() {
             <div key={faq.id} className="bento-card overflow-hidden p-0">
               <button
                 onClick={() => toggleFaq(faq.id)}
-                className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-dark-800/50"
+                className="flex min-h-[52px] w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-dark-800/50"
               >
                 <span className="font-medium">{faq.title}</span>
                 <ChevronIcon expanded={expandedFaq === faq.id} />
@@ -278,7 +627,10 @@ export default function Info() {
 
       return (
         <div className="bento-card prose prose-invert max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: formatContent(rules.content) }} />
+          <div
+            className="overflow-x-auto"
+            dangerouslySetInnerHTML={{ __html: formatContent(rules.content) }}
+          />
           {rules.updated_at && (
             <p className="mt-6 border-t border-dark-700 pt-4 text-sm text-dark-400">
               {t('info.updatedAt')}: {new Date(rules.updated_at).toLocaleDateString()}
@@ -303,7 +655,10 @@ export default function Info() {
 
       return (
         <div className="bento-card prose prose-invert max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: formatContent(privacy.content) }} />
+          <div
+            className="overflow-x-auto"
+            dangerouslySetInnerHTML={{ __html: formatContent(privacy.content) }}
+          />
           {privacy.updated_at && (
             <p className="mt-6 border-t border-dark-700 pt-4 text-sm text-dark-400">
               {t('info.updatedAt')}: {new Date(privacy.updated_at).toLocaleDateString()}
@@ -328,7 +683,10 @@ export default function Info() {
 
       return (
         <div className="bento-card prose prose-invert max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: formatContent(offer.content) }} />
+          <div
+            className="overflow-x-auto"
+            dangerouslySetInnerHTML={{ __html: formatContent(offer.content) }}
+          />
           {offer.updated_at && (
             <p className="mt-6 border-t border-dark-700 pt-4 text-sm text-dark-400">
               {t('info.updatedAt')}: {new Date(offer.updated_at).toLocaleDateString()}
@@ -425,13 +783,13 @@ export default function Info() {
             <div className="mb-4 grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-dark-800/50 p-3">
                 <div className="mb-1 text-xs text-dark-400">{t('info.totalSpent')}</div>
-                <div className="text-lg font-bold text-dark-50">
+                <div className="truncate text-base font-bold text-dark-50 sm:text-lg">
                   {formatCurrency(loyaltyData.current_spent_rubles)}
                 </div>
               </div>
               <div className="rounded-xl bg-dark-800/50 p-3">
                 <div className="mb-1 text-xs text-dark-400">{t('info.currentStatus')}</div>
-                <div className="text-lg font-bold text-accent-400">
+                <div className="truncate text-base font-bold text-accent-400 sm:text-lg">
                   {loyaltyData.current_tier_name || '-'}
                 </div>
               </div>
@@ -440,14 +798,17 @@ export default function Info() {
             {/* Progress bar to next tier */}
             {loyaltyData.next_tier_name && loyaltyData.next_tier_threshold_rubles ? (
               <div>
-                <div className="mb-2 flex justify-between text-xs text-dark-400">
+                <div className="mb-2 flex flex-col gap-1 text-xs text-dark-400 sm:flex-row sm:justify-between">
                   <span>
                     {t('info.nextStatus')}: {loyaltyData.next_tier_name}
                   </span>
                   <span>
                     {t('info.toNextStatus')}:{' '}
                     {formatCurrency(
-                      loyaltyData.next_tier_threshold_rubles - loyaltyData.current_spent_rubles,
+                      Math.max(
+                        0,
+                        loyaltyData.next_tier_threshold_rubles - loyaltyData.current_spent_rubles,
+                      ),
                     )}
                   </span>
                 </div>
@@ -494,14 +855,14 @@ export default function Info() {
                     >
                       <StarIcon />
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-dark-50">{tier.name}</h4>
+                    <div className="min-w-0">
+                      <h4 className="truncate font-semibold text-dark-50">{tier.name}</h4>
                       <p className="text-xs text-dark-400">
                         {t('info.threshold')}: {formatCurrency(tier.threshold_rubles)}
                       </p>
                     </div>
                   </div>
-                  {getStatusBadge(tier)}
+                  <span className="shrink-0">{getStatusBadge(tier)}</span>
                 </div>
 
                 {/* Discounts */}
@@ -555,19 +916,19 @@ export default function Info() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-x-visible">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`flex min-h-[44px] shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? 'bg-accent-500 text-white'
                 : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
             }`}
           >
-            <tab.icon />
-            {tab.label}
+            {tab.emoji ? <span className="text-base">{tab.emoji}</span> : <tab.icon />}
+            <span className="max-w-[140px] truncate">{tab.label}</span>
           </button>
         ))}
       </div>
