@@ -33,11 +33,29 @@ const BOTTOM_NAV_PATHS = [
   '/wheel',
 ];
 
+function getSafeBackTo(state: unknown, currentPath: string): string | null {
+  const backTo = (state as { backTo?: unknown } | null)?.backTo;
+  if (
+    typeof backTo === 'string' &&
+    backTo.startsWith('/') &&
+    !backTo.startsWith('//') &&
+    !backTo.startsWith('/login') &&
+    backTo !== currentPath
+  ) {
+    return backTo;
+  }
+
+  return null;
+}
+
 function TelegramBackButton() {
   const location = useLocation();
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
   navigateRef.current = navigate;
+  const currentPath = location.pathname + location.search;
+  const safeBackToRef = useRef<string | null>(null);
+  safeBackToRef.current = getSafeBackTo(location.state, currentPath);
 
   useEffect(() => {
     const isTopLevel = location.pathname === '' || BOTTOM_NAV_PATHS.includes(location.pathname);
@@ -52,6 +70,11 @@ function TelegramBackButton() {
 
   // Stable handler — ref prevents re-subscription on every render
   const handler = useCallback(() => {
+    if (safeBackToRef.current) {
+      navigateRef.current(safeBackToRef.current, { replace: true });
+      return;
+    }
+
     navigateRef.current(-1);
   }, []);
 

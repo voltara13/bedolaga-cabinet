@@ -158,6 +158,7 @@ export function AppHeader({
     return location.pathname.startsWith(path);
   };
   const isAdminActive = () => location.pathname.startsWith('/admin');
+  const legalBackState = { backTo: location.pathname + location.search };
 
   const navItems = [
     { path: '/', label: t('nav.dashboard'), icon: HomeIcon },
@@ -393,6 +394,7 @@ export function AppHeader({
                 <div className="flex flex-wrap gap-2 px-3 py-2">
                   <Link
                     to="/info?tab=rules"
+                    state={legalBackState}
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-xs text-dark-500 transition-colors hover:text-dark-300"
                   >
@@ -401,6 +403,7 @@ export function AppHeader({
                   <span className="text-xs text-dark-700">·</span>
                   <Link
                     to="/info?tab=privacy"
+                    state={legalBackState}
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-xs text-dark-500 transition-colors hover:text-dark-300"
                   >
@@ -409,6 +412,7 @@ export function AppHeader({
                   <span className="text-xs text-dark-700">·</span>
                   <Link
                     to="/info?tab=offer"
+                    state={legalBackState}
                     onClick={() => setMobileMenuOpen(false)}
                     className="text-xs text-dark-500 transition-colors hover:text-dark-300"
                   >

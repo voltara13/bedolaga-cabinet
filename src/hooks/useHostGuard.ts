@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
 /**
- * Paths that must live on the public (apex) host only — the landing and other
- * marketing pages. Everything else (including /login and auth flows) belongs
- * on the cabinet host so that auth tokens stay on the origin that needs them.
+ * Paths that must live on the public (apex) host only. Legal/info pages are
+ * intentionally not listed here: they must work both publicly on apex and inside
+ * the authenticated cabinet origin so auth state is not lost during navigation.
  */
-const APEX_ONLY_PREFIXES = ['/home', '/info'];
+const APEX_ONLY_PREFIXES = ['/home'];
 
 function matchesAny(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p + '/'));

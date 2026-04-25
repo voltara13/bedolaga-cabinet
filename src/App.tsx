@@ -160,8 +160,24 @@ const AdminInfoPageEditor = lazyWithRetry(() => import('./pages/AdminInfoPageEdi
 function PublicPageLayout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleBack = () => {
+    const state = location.state as { backTo?: string } | null;
+    const currentPath = location.pathname + location.search;
+    const backTo = state?.backTo;
+
+    if (
+      backTo &&
+      backTo.startsWith('/') &&
+      !backTo.startsWith('//') &&
+      !backTo.startsWith('/login') &&
+      backTo !== currentPath
+    ) {
+      navigate(backTo, { replace: true });
+      return;
+    }
+
     if (window.history.length > 1) {
       navigate(-1);
     } else {

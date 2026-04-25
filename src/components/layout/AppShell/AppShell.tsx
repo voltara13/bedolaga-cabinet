@@ -270,6 +270,7 @@ export function AppShell({ children }: AppShellProps) {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
+  const legalBackState = { backTo: location.pathname + location.search };
 
   const handleNavClick = () => {
     haptic.impact('light');
@@ -469,6 +470,7 @@ export function AppShell({ children }: AppShellProps) {
           <span>·</span>
           <Link
             to="/info?tab=rules"
+            state={legalBackState}
             onClick={() => haptic.impact('light')}
             className="transition-colors hover:text-dark-400"
           >
@@ -477,6 +479,7 @@ export function AppShell({ children }: AppShellProps) {
           <span>·</span>
           <Link
             to="/info?tab=privacy"
+            state={legalBackState}
             onClick={() => haptic.impact('light')}
             className="transition-colors hover:text-dark-400"
           >
@@ -485,6 +488,7 @@ export function AppShell({ children }: AppShellProps) {
           <span>·</span>
           <Link
             to="/info?tab=offer"
+            state={legalBackState}
             onClick={() => haptic.impact('light')}
             className="transition-colors hover:text-dark-400"
           >
@@ -493,6 +497,7 @@ export function AppShell({ children }: AppShellProps) {
           <span>·</span>
           <Link
             to="/info?tab=personal-data"
+            state={legalBackState}
             onClick={() => haptic.impact('light')}
             className="transition-colors hover:text-dark-400"
           >
