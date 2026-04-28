@@ -121,7 +121,7 @@ export default function Connection() {
       const isHttpUrl = /^https?:\/\//i.test(resolved);
       const finalUrlForTelegram = isHttpUrl
         ? resolved
-        : `${window.location.origin}/miniapp/redirect.html?url=${encodeURIComponent(resolved)}&lang=${i18n.language || 'en'}`;
+        : `${window.location.origin}/miniapp/redirect.html?url=${encodeURIComponent(resolved)}&lang=${i18n.language || 'ru'}`;
 
       if (isTelegramWebApp) {
         try {

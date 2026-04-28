@@ -1,68 +1,32 @@
 import i18n, { type ResourceLanguage } from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 import ru from './locales/ru.json';
 
-const localeLoaders: Record<string, () => Promise<{ default: ResourceLanguage }>> = {
-  en: () => import('./locales/en.json'),
-  zh: () => import('./locales/zh.json'),
-  fa: () => import('./locales/fa.json'),
-};
-
 const FALLBACK_LNG = 'ru';
-const SUPPORTED_LANGS = [FALLBACK_LNG, ...Object.keys(localeLoaders)];
+const SUPPORTED_LANGS = [FALLBACK_LNG];
 
-const loadedLanguages = new Set<string>([FALLBACK_LNG]);
+i18n.use(initReactI18next).init({
+  lng: FALLBACK_LNG,
+  fallbackLng: FALLBACK_LNG,
+  supportedLngs: SUPPORTED_LANGS,
+  resources: {
+    [FALLBACK_LNG]: { translation: ru as ResourceLanguage },
+  },
 
-async function loadLanguage(lng: string): Promise<void> {
-  if (loadedLanguages.has(lng)) return;
+  interpolation: {
+    escapeValue: false,
+  },
 
-  const loader = localeLoaders[lng];
-  if (!loader) return;
+  react: {
+    useSuspense: false,
+  },
 
-  const mod = await loader();
-  i18n.addResourceBundle(lng, 'translation', mod.default, true, true);
-  loadedLanguages.add(lng);
-}
-
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    fallbackLng: FALLBACK_LNG,
-    supportedLngs: SUPPORTED_LANGS,
-    partialBundledLanguages: true,
-    resources: {
-      [FALLBACK_LNG]: { translation: ru as ResourceLanguage },
-    },
-
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'cabinet_language',
-    },
-
-    interpolation: {
-      escapeValue: false,
-    },
-
-    react: {
-      useSuspense: false,
-    },
-
-    showSupportNotice: false,
-  });
-
-// Wait for the detected (non-fallback) language before first render, so pages
-// don't flash raw translation keys. ru is already bundled synchronously above.
-const detectedLng = i18n.language?.split('-')[0] || FALLBACK_LNG;
-export const i18nReady: Promise<void> =
-  detectedLng === FALLBACK_LNG ? Promise.resolve() : loadLanguage(detectedLng).catch(() => {});
-
-// Lazy-load on language change
-i18n.on('languageChanged', (lng: string) => {
-  const code = lng.split('-')[0];
-  loadLanguage(code);
+  showSupportNotice: false,
 });
+
+document.documentElement.lang = FALLBACK_LNG;
+document.documentElement.dir = 'ltr';
+
+export const i18nReady: Promise<void> = Promise.resolve();
 
 export default i18n;

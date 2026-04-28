@@ -349,7 +349,7 @@ export default function InfoPageView() {
 
   const resolvedTitle = useMemo(() => {
     if (!page) return '';
-    return page.title[locale] || page.title['ru'] || page.title['en'] || '';
+    return page.title[locale] || page.title['ru'] || '';
   }, [page, locale]);
 
   const isFaq = page?.page_type === 'faq';
@@ -357,7 +357,7 @@ export default function InfoPageView() {
   // Parse FAQ items from content
   const faqItems = useMemo((): FaqItem[] => {
     if (!page || !isFaq) return [];
-    const raw = page.content[locale] || page.content['ru'] || page.content['en'] || '[]';
+    const raw = page.content[locale] || page.content['ru'] || '[]';
     try {
       const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
       return Array.isArray(parsed) ? parsed : [];
@@ -369,7 +369,7 @@ export default function InfoPageView() {
   // Content is sanitized with DOMPurify before rendering
   const sanitizedContent = useMemo(() => {
     if (!page || isFaq) return '';
-    const rawContent = page.content[locale] || page.content['ru'] || page.content['en'] || '';
+    const rawContent = page.content[locale] || page.content['ru'] || '';
     return sanitizeHtml(rawContent);
   }, [page, locale, isFaq]);
 

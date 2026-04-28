@@ -441,8 +441,7 @@ export default function Info() {
   // Parse FAQ items from InfoPage content
   const infoPageFaqItems = useMemo((): FaqItem[] => {
     if (!infoPage || infoPage.page_type !== 'faq') return [];
-    const raw =
-      infoPage.content[locale] || infoPage.content['ru'] || infoPage.content['en'] || '[]';
+    const raw = infoPage.content[locale] || infoPage.content['ru'] || '[]';
     try {
       const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
       return Array.isArray(parsed) ? parsed : [];
@@ -454,8 +453,7 @@ export default function Info() {
   // Sanitize regular InfoPage HTML content
   const infoPageHtml = useMemo(() => {
     if (!infoPage || infoPage.page_type === 'faq') return '';
-    const rawContent =
-      infoPage.content[locale] || infoPage.content['ru'] || infoPage.content['en'] || '';
+    const rawContent = infoPage.content[locale] || infoPage.content['ru'] || '';
     return sanitizeRichHtml(rawContent);
   }, [infoPage, locale]);
 
@@ -516,7 +514,7 @@ export default function Info() {
   ];
 
   const customTabs = extraPages.map((p) => {
-    const label = p.title[locale] || p.title['ru'] || p.title['en'] || p.slug;
+    const label = p.title[locale] || p.title['ru'] || p.slug;
     return { id: p.slug, label, icon: DocumentIcon, emoji: p.icon ?? undefined };
   });
 

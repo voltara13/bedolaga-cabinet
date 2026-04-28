@@ -19,8 +19,7 @@ import { useHapticFeedback } from '../platform/hooks/useHaptic';
 import { cn } from '../lib/utils';
 import type { InfoPageType, FaqItem, ReplacesTab } from '../api/infoPages';
 
-const AVAILABLE_LOCALES = ['ru', 'en', 'zh', 'fa'] as const;
-type LocaleCode = (typeof AVAILABLE_LOCALES)[number];
+type LocaleCode = 'ru';
 
 // --- Icons ---
 const BoldIcon = () => (
@@ -735,13 +734,11 @@ export default function AdminInfoPageEditor() {
   const [replacesTab, setReplacesTab] = useState<ReplacesTab | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // FAQ Q&A state per locale
+  // FAQ Q&A state per locale. The editor only writes Russian content.
   const [faqItems, setFaqItems] = useState<Record<string, FaqItem[]>>({});
 
-  // Multi-locale state
-  const [activeLocale, setActiveLocale] = useState<LocaleCode>('ru');
+  const activeLocale: LocaleCode = 'ru';
   const [titles, setTitles] = useState<Record<string, string>>({});
-  const [contents, setContents] = useState<Record<string, string>>({});
 
   // Media upload state
   const mediaInputRef = useRef<HTMLInputElement>(null);
@@ -947,23 +944,16 @@ export default function AdminInfoPageEditor() {
     setSortOrder(pageData.sort_order);
     setPageType(pageData.page_type ?? 'page');
     setReplacesTab(pageData.replaces_tab ?? null);
-    setTitles(pageData.title);
+    setTitles({ ru: pageData.title.ru ?? '' });
 
     if (pageData.page_type === 'faq') {
-      // For FAQ pages, content stores Q&A arrays per locale
-      const parsed: Record<string, FaqItem[]> = {};
-      for (const [loc, val] of Object.entries(pageData.content)) {
-        try {
-          const arr = typeof val === 'string' ? JSON.parse(val) : val;
-          parsed[loc] = Array.isArray(arr) ? arr : [];
-        } catch {
-          parsed[loc] = [];
-        }
+      try {
+        const value = pageData.content.ru;
+        const arr = typeof value === 'string' ? JSON.parse(value) : value;
+        setFaqItems({ ru: Array.isArray(arr) ? arr : [] });
+      } catch {
+        setFaqItems({ ru: [] });
       }
-      setFaqItems(parsed);
-      setContents({});
-    } else {
-      setContents(pageData.content);
     }
 
     formPopulated.current = true;
@@ -983,25 +973,6 @@ export default function AdminInfoPageEditor() {
       setSlug(generateSlug(titles['ru']));
     }
   }, [titles, slugManuallyEdited]);
-
-  // --- Locale switching ---
-  const switchLocale = useCallback(
-    (newLocale: LocaleCode) => {
-      if (!editor) return;
-      // Save current editor content
-      const currentHtml = editor.getHTML();
-      const isEmpty = currentHtml === '<p></p>' || currentHtml === '';
-      setContents((prev) => ({
-        ...prev,
-        [activeLocale]: isEmpty ? '' : currentHtml,
-      }));
-      // Load new locale content
-      const newContent = contents[newLocale] ?? '';
-      editor.commands.setContent(newContent);
-      setActiveLocale(newLocale);
-    },
-    [editor, activeLocale, contents],
-  );
 
   // Save mutation
   const saveMutation = useMutation({
@@ -1039,24 +1010,18 @@ export default function AdminInfoPageEditor() {
     let finalContents: Record<string, string>;
 
     if (pageType === 'faq') {
-      // Serialize FAQ items as JSON strings per locale
-      finalContents = {};
-      for (const [loc, items] of Object.entries(faqItems)) {
-        finalContents[loc] = JSON.stringify(items);
-      }
+      finalContents = { ru: JSON.stringify(faqItems.ru ?? []) };
     } else {
-      // Capture current editor content for the active locale
       const currentHtml = editor?.getHTML() ?? '';
       const isEmpty = currentHtml === '<p></p>' || currentHtml === '';
       finalContents = {
-        ...contents,
-        [activeLocale]: isEmpty ? '' : currentHtml,
+        ru: isEmpty ? '' : currentHtml,
       };
     }
 
     const data = {
       slug: slug.trim(),
-      title: titles,
+      title: { ru: titles.ru ?? '' },
       content: finalContents,
       page_type: pageType,
       is_active: isActive,
@@ -1216,29 +1181,7 @@ export default function AdminInfoPageEditor() {
             )}
         </div>
 
-        {/* Locale tabs */}
-        <div>
-          <label className="label">{t('admin.infoPages.localeLabel')}</label>
-          <div className="flex flex-wrap gap-1">
-            {AVAILABLE_LOCALES.map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                onClick={() => switchLocale(loc)}
-                className={cn(
-                  'min-h-[44px] rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
-                  activeLocale === loc
-                    ? 'bg-accent-500 text-white'
-                    : 'bg-dark-700 text-dark-300 hover:bg-dark-600 hover:text-dark-100',
-                )}
-              >
-                {t(`admin.infoPages.locales.${loc}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Title for current locale */}
+        {/* Title */}
         <div>
           <label className="label">
             {t('admin.infoPages.fields.title')} ({t(`admin.infoPages.locales.${activeLocale}`)})

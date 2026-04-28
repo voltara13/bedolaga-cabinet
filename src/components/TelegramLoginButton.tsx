@@ -119,7 +119,7 @@ export default function TelegramLoginButton({ referralCode }: TelegramLoginButto
           {
             client_id: Number(widgetConfig.oidc_client_id) || widgetConfig.oidc_client_id,
             request_access: widgetConfig.request_access ? ['write'] : undefined,
-            lang: document.documentElement.lang || 'en',
+            lang: document.documentElement.lang || 'ru',
           },
           (data) => handleOIDCCallbackRef.current?.(data),
         );

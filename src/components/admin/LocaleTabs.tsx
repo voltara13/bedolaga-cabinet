@@ -27,6 +27,10 @@ export function LocaleTabs({
 }: LocaleTabsProps) {
   const { t } = useTranslation();
 
+  if (SUPPORTED_LOCALES.length <= 1) {
+    return null;
+  }
+
   const hasContent = (locale: SupportedLocale): boolean => {
     if (!contentIndicators || contentIndicators.length === 0) return false;
     return contentIndicators.some((dict) => {

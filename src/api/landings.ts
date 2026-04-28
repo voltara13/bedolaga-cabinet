@@ -133,18 +133,15 @@ export interface PurchaseStatus {
   bot_link: string | null;
 }
 
-/** Locale dict for multi-language text fields (admin API) */
+/** Locale dict for text fields stored by locale key. Only Russian is supported in the UI. */
 export type LocaleDict = Record<string, string>;
 
 /** Supported locales for the admin editor */
-export const SUPPORTED_LOCALES = ['ru', 'en', 'zh', 'fa'] as const;
+export const SUPPORTED_LOCALES = ['ru'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const LOCALE_META: Record<SupportedLocale, { flag: string; name: string; rtl: boolean }> = {
   ru: { flag: '\u{1F1F7}\u{1F1FA}', name: 'RU', rtl: false },
-  en: { flag: '\u{1F1EC}\u{1F1E7}', name: 'EN', rtl: false },
-  zh: { flag: '\u{1F1E8}\u{1F1F3}', name: 'ZH', rtl: false },
-  fa: { flag: '\u{1F1EE}\u{1F1F7}', name: 'FA', rtl: true },
 };
 
 /** Admin feature type with localized title/description */
@@ -227,11 +224,11 @@ export interface LandingCreateRequest {
 
 export type LandingUpdateRequest = Partial<LandingCreateRequest>;
 
-/** Extract best display string from a LocaleDict: ru -> en -> first available -> '' */
+/** Extract best display string from a LocaleDict: ru -> first available -> '' */
 export function resolveLocaleDisplay(dict: LocaleDict | string | null | undefined): string {
   if (!dict) return '';
   if (typeof dict === 'string') return dict;
-  return dict.ru || dict.en || Object.values(dict).find((v) => v?.trim()) || '';
+  return dict.ru || Object.values(dict).find((v) => v?.trim()) || '';
 }
 
 export function toLocaleDict(

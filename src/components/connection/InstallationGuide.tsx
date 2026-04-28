@@ -65,8 +65,8 @@ export default function InstallationGuide({
   const getLocalizedText = useCallback(
     (text: LocalizedText | undefined): string => {
       if (!text) return '';
-      const lang = i18n.language || 'en';
-      return text[lang] || text['en'] || text['ru'] || Object.values(text)[0] || '';
+      const lang = i18n.language || 'ru';
+      return text[lang] || text['ru'] || Object.values(text)[0] || '';
     },
     [i18n.language],
   );
