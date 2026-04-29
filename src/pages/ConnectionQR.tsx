@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { useBranding } from '../hooks/useBranding';
 import { AdminBackButton } from '@/components/admin';
+import { CheckIcon, CopyIcon } from '../components/icons';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface ConnectionQRState {
   url: string;
@@ -22,6 +24,8 @@ export default function ConnectionQR() {
   const navigate = useNavigate();
   const location = useLocation();
   const { appName } = useBranding();
+  const [copied, setCopied] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const state = location.state as unknown;
   const validState = isValidState(state) ? state : null;
@@ -33,6 +37,21 @@ export default function ConnectionQR() {
       navigate(connectionPath, { replace: true });
     }
   }, [validState, navigate, connectionPath]);
+
+  useEffect(
+    () => () => {
+      if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    },
+    [],
+  );
+
+  const handleCopyLink = async () => {
+    if (!validState) return;
+    await copyToClipboard(validState.url);
+    setCopied(true);
+    if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+    copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+  };
 
   if (!validState) {
     return null;
@@ -68,9 +87,23 @@ export default function ConnectionQR() {
           </div>
 
           {!validState.hideLink && (
-            <p className="mt-6 max-w-full truncate text-center font-mono text-xs text-dark-500">
-              {validState.url}
-            </p>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className={`mt-6 flex max-w-full items-center gap-2 rounded-xl border px-3 py-2 text-left font-mono text-xs transition-colors ${
+                copied
+                  ? 'border-accent-500/30 bg-accent-500/10 text-accent-400'
+                  : 'border-dark-700/70 bg-dark-800/60 text-dark-500 hover:border-dark-600 hover:text-dark-300'
+              }`}
+              title={copied ? t('subscription.connection.copied') : t('subscription.copyLink')}
+            >
+              <span className="min-w-0 truncate">{validState.url}</span>
+              {copied ? (
+                <CheckIcon className="h-4 w-4 shrink-0" />
+              ) : (
+                <CopyIcon className="h-4 w-4 shrink-0" />
+              )}
+            </button>
           )}
         </div>
       </div>

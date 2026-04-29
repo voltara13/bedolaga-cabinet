@@ -186,7 +186,7 @@ export default function InstallationGuide({
   return (
     <div className="space-y-6 pb-6">
       {/* Header + platform dropdown */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {!isTelegramWebApp && (
           <button
             onClick={onGoBack}
@@ -201,10 +201,14 @@ export default function InstallationGuide({
         {appConfig.subscriptionUrl && onOpenQR && (
           <button
             onClick={() => onOpenQR()}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-dark-700 bg-dark-800 text-dark-200 transition-colors hover:border-dark-600"
+            className={`order-last flex h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors sm:order-none sm:w-auto ${
+              isLight
+                ? 'border-dark-700/60 bg-white/80 text-dark-200 shadow-sm hover:border-dark-600'
+                : 'border-dark-700 bg-dark-800 text-dark-200 hover:border-dark-600'
+            }`}
           >
             <svg
-              className="h-5 w-5"
+              className="h-4 w-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -221,6 +225,7 @@ export default function InstallationGuide({
                 d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75H16.5v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h3v3h-3v-3z"
               />
             </svg>
+            <span>{t('subscription.connection.addAnotherDevice')}</span>
           </button>
         )}
         {availablePlatforms.length > 1 && (
