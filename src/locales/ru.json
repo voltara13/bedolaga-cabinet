@@ -3436,6 +3436,7 @@
       "subtitle": "Управление пользователями бота",
       "search": "Поиск по ID, имени, username...",
       "searchEmail": "Поиск по email...",
+      "searchSubscription": "Поиск по названию подписки...",
       "noData": "Пользователи не найдены",
       "purchaseCount_one": "{{count}} покупка",
       "purchaseCount_few": "{{count}} покупки",

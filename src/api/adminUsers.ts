@@ -36,6 +36,7 @@ export interface UserPromoGroupInfo {
 
 export interface UserListItemSubscription {
   id: number;
+  name?: string | null;
   tariff_id: number | null;
   tariff_name: string | null;
   status: string;
@@ -59,6 +60,7 @@ export interface UserListItem {
   created_at: string;
   last_activity: string | null;
   has_subscription: boolean;
+  subscription_name?: string | null;
   subscription_status: string | null;
   subscription_is_trial: boolean;
   subscription_end_date: string | null;
@@ -411,6 +413,7 @@ export const adminUsersApi = {
       limit?: number;
       search?: string;
       email?: string;
+      subscription_name?: string;
       status?: 'active' | 'blocked' | 'deleted';
       subscription_status?: string;
       tariff_id?: string;

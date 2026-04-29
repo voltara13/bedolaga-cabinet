@@ -97,6 +97,22 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function getSubscriptionNames(user: UserListItem): string[] {
+  const names = (user.subscriptions ?? [])
+    .map((subscription) => subscription.name || subscription.tariff_name)
+    .filter((name): name is string => Boolean(name));
+
+  if (names.length === 0 && user.subscription_name) {
+    names.push(user.subscription_name);
+  }
+
+  if (names.length === 0 && user.tariff_name) {
+    names.push(user.tariff_name);
+  }
+
+  return [...new Set(names)];
+}
+
 interface UserRowProps {
   user: UserListItem;
   onClick: () => void;
@@ -105,6 +121,8 @@ interface UserRowProps {
 
 function UserRow({ user, onClick, formatAmount }: UserRowProps) {
   const { t } = useTranslation();
+  const subscriptionNames = getSubscriptionNames(user);
+
   return (
     <div
       onClick={onClick}
@@ -130,6 +148,22 @@ function UserRow({ user, onClick, formatAmount }: UserRowProps) {
           <TelegramIcon />
           <span className="truncate">{user.telegram_id}</span>
         </div>
+
+        {subscriptionNames.length > 0 && (
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            {subscriptionNames.slice(0, 3).map((name) => (
+              <span
+                key={name}
+                className="max-w-full truncate rounded-full border border-dark-600 bg-dark-700/50 px-2 py-0.5 text-xs text-dark-300"
+              >
+                {name}
+              </span>
+            ))}
+            {subscriptionNames.length > 3 && (
+              <span className="text-xs text-dark-500">+{subscriptionNames.length - 3}</span>
+            )}
+          </div>
+        )}
 
         {/* Status badges - wrap on mobile */}
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -186,6 +220,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [emailSearch, setEmailSearch] = useState('');
+  const [subscriptionNameSearch, setSubscriptionNameSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [offset, setOffset] = useState(0);
@@ -199,6 +234,7 @@ export default function AdminUsers() {
       const params: Record<string, unknown> = { offset, limit, sort_by: sortBy };
       if (search) params.search = search;
       if (emailSearch) params.email = emailSearch;
+      if (subscriptionNameSearch) params.subscription_name = subscriptionNameSearch;
       if (statusFilter) params.status = statusFilter;
 
       const data = await adminUsersApi.getUsers(
@@ -211,7 +247,7 @@ export default function AdminUsers() {
     } finally {
       setLoading(false);
     }
-  }, [offset, search, emailSearch, statusFilter, sortBy]);
+  }, [offset, search, emailSearch, subscriptionNameSearch, statusFilter, sortBy]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -297,7 +333,7 @@ export default function AdminUsers() {
       {/* Filters */}
       <div className="mb-4 flex flex-col gap-3">
         {/* Search fields row */}
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <form onSubmit={handleSearch} className="flex-1">
             <div className="relative">
               <input
@@ -325,6 +361,23 @@ export default function AdminUsers() {
                   setOffset(0);
                 }}
                 placeholder={t('admin.users.searchEmail')}
+                className="w-full rounded-xl border border-dark-700 bg-dark-800 py-2 pl-10 pr-4 text-dark-100 placeholder-dark-500 focus:border-dark-600 focus:outline-none"
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500">
+                <SearchIcon />
+              </div>
+            </div>
+          </form>
+          <form onSubmit={handleSearch} className="flex-1">
+            <div className="relative">
+              <input
+                type="text"
+                value={subscriptionNameSearch}
+                onChange={(e) => {
+                  setSubscriptionNameSearch(e.target.value);
+                  setOffset(0);
+                }}
+                placeholder={t('admin.users.searchSubscription')}
                 className="w-full rounded-xl border border-dark-700 bg-dark-800 py-2 pl-10 pr-4 text-dark-100 placeholder-dark-500 focus:border-dark-600 focus:outline-none"
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500">
